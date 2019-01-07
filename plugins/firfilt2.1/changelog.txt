@@ -1,3 +1,20 @@
+Version 2.1
+- ENH: allow channel selection
+- ENH: 'key', val parameters for function pop_eegfiltnew.m
+- BUG: prevent crash when signal processing toolbox absent
+
+Version 2.0
+- ENH: usefftfilt option for frequency domain filtering (faster for very high filter orders)
+- ENH: reporting of filter parameters for pop_firws
+- ENH: added command line parameter for plotting of filter responses for pop_firws
+- CHG: sync existing low level functions to Fieldtrip (windows, fir_filterdcpadded, firws, plotfresp, minphaserceps)
+- CHG: removed Bartlett window
+- CHG: default Hamming window (for consistency with fir1 and Fieldtrip)
+- BUG: pop_firpm compatibility with R2015a
+
+Version 1.6.1
+- ENH: documentation improvements for pop_firws GUI and pop_firpmord help text
+
 Version 1.6
 - ENH: minimum-phase conversion and causal filtering
 
@@ -54,4 +71,4 @@ Version 0.91
 - BUG: check for empty boundaries vector.
 
 Version 0.9
-starting, initial public release.
+- starting, initial public release.
