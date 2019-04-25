@@ -51,19 +51,30 @@
 
 % Copyright (C) 2018 Arnaud Delorm
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [STUDY, LIMO_files] = std_limo(STUDY,ALLEEG,varargin)
 
@@ -136,12 +147,15 @@ end
 
 % Checking if clusters
 % -------------------------------------------------------------------------
-if strcmp(model.defaults.type,'Components') && isempty(STUDY.cluster(1).child)
-    warndlg2(sprintf('Components have not been clustered,\nLIMO will not matched them across subjects'))
-else
-    model.defaults.icaclustering = 1;
+if strcmp(model.defaults.type,'Components')
+    if isempty(STUDY.cluster(1).child)
+        warndlg2(sprintf('Components have not been clustered,\nLIMO will not match them across subjects'))
+        model.defaults.icaclustering = 0;
+    else
+        model.defaults.icaclustering = 1;
+    end
 end
-    
+
 % computing channel neighbox matrix
 % ---------------------------------
 flag_ok = 1;
@@ -158,9 +172,11 @@ if isempty(opt.chanloc) && isempty(opt.neighbormat)
             errordlg2(neighbors_error.message,'limo_gp_level_chanlocs.mat not created')
         end
     else
-        disp('Warning: cannot compute expected channel distance for correction for multiple comparisons');
         limoChanlocs = [];
         flag_ok = 0;
+        if ~isempty(STUDY.cluster(1).child)
+            disp('Warning: cannot compute expected channel distance for correction for multiple comparisons');
+        end
     end
 else
     limoChanlocs.expected_chanlocs   = opt.chanloc;
@@ -188,9 +204,11 @@ model.cont_files = [];
 unique_subjects  = STUDY.design(STUDY.currentdesign).cases.value'; % all designs have the same cases
 nb_subjects      = length(unique_subjects);
 
-for s = 1:nb_subjects
-    nb_sets(s) = numel(find(strcmp(unique_subjects{s},{STUDY.datasetinfo.subject})));
-end
+% useful for multiple sessions
+% nb_sets          = NaN(1,nb_subjects);
+% for s = 1:nb_subjects
+%     nb_sets(s) = numel(find(strcmp(unique_subjects{s},{STUDY.datasetinfo.subject})));
+% end
 
 % find out if the channels are interpolated
 % -----------------------------------------
@@ -205,6 +223,7 @@ end
 
 % simply reshape to read columns
 % -------------------------------------------------------------------------
+order = cell(1,nb_subjects);
 for s = 1:nb_subjects
     order{s} = find(strcmp(unique_subjects{s},{STUDY.datasetinfo.subject}));
 end
@@ -212,6 +231,7 @@ end
 % Cleaning old files from the current design (Cleaning ALL)
 % -------------------------------------------------------------------------
 % NOTE: Clean up the .lock files to (to be implemented)
+% [STUDY.filepath filesep 'derivatives' filesep 'limo_batch_report'] 
 if strcmp(opt.erase,'on')
     [tmp,filename] = fileparts(STUDY.filename);
     std_limoerase(STUDY.filepath, filename, unique_subjects, num2str(STUDY.currentdesign));
@@ -220,7 +240,7 @@ end
 
 % Check if the measures has been computed
 % -------------------------------------------------------------------------
-for nsubj = 1 : length(unique_subjects)
+for nsubj = 1 : nb_subjects
     inds     = find(strcmp(unique_subjects{nsubj},{STUDY.datasetinfo.subject}));
     
     % Checking for relative path
@@ -281,7 +301,8 @@ for s = 1:nb_subjects
     OUTEEG = [];    
     if all([ALLEEG(index).trials] == 1)
          OUTEEG.trials = 1;
-    else OUTEEG.trials = sum([ALLEEG(index).trials]);
+    else
+        OUTEEG.trials = sum([ALLEEG(index).trials]);
     end
     
     filepath_tmp           = rel2fullpath(STUDY.filepath,ALLEEG(index(1)).filepath);
@@ -290,6 +311,7 @@ for s = 1:nb_subjects
     OUTEEG.srate           = ALLEEG(index(1)).srate;
     OUTEEG.icaweights      = ALLEEG(index(1)).icaweights;
     OUTEEG.icasphere       = ALLEEG(index(1)).icasphere;
+    OUTEEG.icawinv         = ALLEEG(index(1)).icawinv;
     OUTEEG.icachansind     = ALLEEG(index(1)).icachansind;
     OUTEEG.etc             = ALLEEG(index(1)).etc;
     OUTEEG.times           = ALLEEG(index(1)).times;
@@ -390,9 +412,9 @@ if all(cellfun(@isempty, model.cont_files)), model.cont_files = []; end
 % to update passing the timing/frequency from STUDY - when computing measures
 % -----------------------------------------------------------------
 if strcmp(Analysis,'daterp') || strcmp(Analysis,'icaerp')
-    model.defaults.analysis= 'Time';
-    model.defaults.start = ALLEEG(index(1)).xmin*1000;
-    model.defaults.end   = ALLEEG(index(1)).xmax*1000;
+    model.defaults.analysis = 'Time';
+    model.defaults.start    = ALLEEG(index(1)).xmin*1000;
+    model.defaults.end      = ALLEEG(index(1)).xmax*1000;
     if length(opt.timelim) == 2 && opt.timelim(1) < opt.timelim(end)
         % start value
         if opt.timelim(1) < model.defaults.start 
@@ -450,7 +472,9 @@ end
 STUDY.limo.model         = model;
 STUDY.limo.datatype      = Analysis;
 STUDY.limo.chanloc       = limoChanlocs.expected_chanlocs;
-STUDY.limo.contrast      = limocontrast;
+if exist('limocontrast','var')
+    STUDY.limo.contrast      = limocontrast;
+end
 
 % Save STUDY
 if sum(procstatus) ~= 0
@@ -462,6 +486,11 @@ if sum(procstatus) ~= 0
     end
 else 
     errordlg2('all subjects failed to process, check batch report')
+end
+
+% cleanup temp files
+for s = 1:nb_subjects
+    delete(model.set_files{s});
 end
 
 % -------------------------------------------------------------------------

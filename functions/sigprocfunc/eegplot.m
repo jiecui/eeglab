@@ -169,19 +169,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme & Colin Humphries, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % Note for programmers - Internal variable structure:
 % All in g. except for Eposition and Eg.spacingwhich are inside the boxes
@@ -480,18 +491,15 @@ if ~ischar(data) % If NOT a 'noui' call or a callback from uicontrols
       'tag','eegaxis','parent',figh,...%(when in g, slow down display)
       'Box','on','xgrid', g.xgrid,'ygrid', g.ygrid,...
       'gridlinestyle',DEFAULT_GRID_STYLE,...
-      'Xlim',[0 g.winlength*g.srate],...
-      'xtick',[0:g.srate*DEFAULT_GRID_SPACING:g.winlength*g.srate],...
       'Ylim',[0 (g.chans+1)*g.spacing],...
       'YTick',[0:g.spacing:g.chans*g.spacing],...
       'YTickLabel', YLabels,...
-      'XTickLabel',num2str((0:DEFAULT_GRID_SPACING:g.winlength)'),...
       'TickLength',[.005 .005],...
       'Color','none',...
       'XColor',DEFAULT_AXIS_COLOR,...
       'YColor',DEFAULT_AXIS_COLOR);
 
-  if ischar(g.eloc_file) || isstruct(g.eloc_file)  % Read in electrode names
+  if ischar(g.eloc_file) || isstruct(g.eloc_file)  % Read in electrode name
       if isstruct(g.eloc_file) && length(g.eloc_file) > size(data,1)
           g.eloc_file(end) = []; % common reference channel location
       end
@@ -1233,7 +1241,7 @@ else
 		multiplier = g.trialstag;	
 	 else
 		multiplier = g.srate;
-	 end;		
+     end
     
     % Update edit box
     % ---------------
@@ -1242,7 +1250,7 @@ else
         set(EPosition,'string',num2str(g.time)); 
     else 
         set(EPosition,'string',num2str(g.time+1)); 
-    end; 
+    end
     set(figh, 'userdata', g);
 
     lowlim = round(g.time*multiplier+1);
@@ -1252,7 +1260,7 @@ else
     % -------------------------
     if ~isempty(g.data2)
         switch lower(g.submean) % subtract the mean ?
-         case 'on', 
+         case 'on'
           meandata = mean(g.data2(:,lowlim:highlim)');  
           if any(isnan(meandata))                              
               meandata = nan_mean(g.data2(:,lowlim:highlim)');
@@ -1261,7 +1269,7 @@ else
         end
     else
         switch lower(g.submean) % subtract the mean ?
-         case 'on', 
+         case 'on'
           meandata = mean(data(:,lowlim:highlim)');
           if any(isnan(meandata))
               meandata = nan_mean(data(:,lowlim:highlim)');
@@ -1333,11 +1341,11 @@ else
    							-meandata(g.chans-i+1)+i*g.spacing + (g.dispchans+1)*(oldspacing-g.spacing)/2 +g.elecoffset*(oldspacing-g.spacing), 'color','r','clipping','on')
 					end
     			end
-  			end;	
+            end
     	end
-    end;		
+    end	
     g.spacing = oldspacing;
-    set(ax1, 'Xlim',[1 g.winlength*multiplier+1],...
+    set(ax1, 'Xlim',[1 g.winlength*multiplier],...
 		     'XTick',[1:multiplier*DEFAULT_GRID_SPACING:g.winlength*multiplier+1]);
 %          if g.isfreq % Ramon
 %              set(ax1, 'XTickLabel', num2str((g.freqs(1):DEFAULT_GRID_SPACING:g.freqs(end))'));
@@ -1351,10 +1359,10 @@ else
 	 if g.children ~= 0
 		if ~exist('p2', 'var')
 			p2 =[];
-		end;	
+        end
 		eegplot( 'drawp', p1, p2, g.children);
 		figure(figh);
-	 end;	  
+     end
 
      % draw second data if necessary
      if ~isempty(g.data2)
@@ -1389,7 +1397,7 @@ else
 		multiplier = g.trialstag;	
 	else
 		multiplier = g.srate;
-	end;		
+    end
 
     % draw rejection windows
     % ----------------------   	
@@ -1505,9 +1513,9 @@ else
             % draw duration is not 0
             % ----------------------
             if g.ploteventdur && ~isempty(g.eventlatencyend) ...
-                    & g.eventwidths( event2plot(index) ) ~= 2.5 % do not plot length of boundary events
+                    && g.eventwidths( event2plot(index) ) ~= 2.5 % do not plot length of boundary events
                 tmplatend = g.eventlatencyend(event2plot(index))-lowlim-1;
-                if tmplatend ~= 0, 
+                if tmplatend ~= 0
                     tmplim = ylims;
                     tmpcol = g.eventcolors{ event2plot(index) };
                     h = patch([ tmplat tmplatend tmplatend tmplat ], ...
@@ -1529,7 +1537,7 @@ else
         tmptag = [lowlim:highlim];
        	tmpind = find(mod(tmptag-1, g.trialstag) == 0);
         for index = tmpind
-            plot([tmptag(index)-lowlim-1 tmptag(index)-lowlim-1], [0 1], 'b--');
+            plot([tmptag(index)-lowlim tmptag(index)-lowlim], [0 1], 'b--');
         end
         alltag = tmptag(tmpind);
 
@@ -1537,7 +1545,7 @@ else
         % --------------
         tagnum = (alltag-1)/g.trialstag+1;
      	set(ax0,'XTickLabel', tagnum,'YTickLabel', [],...
-		'Xlim',[0 g.winlength*multiplier],...
+		'Xlim',[0 g.winlength*multiplier-1],...
 		'XTick',alltag-lowlim+g.trialstag/2, 'YTick',[], 'tag','backeeg');
 		
 		axes(ax1);
@@ -1587,7 +1595,7 @@ else
             tpmorder = 1; 
         end
         tagtext = eeg_point2lat(tagpos, floor((tagpos)/g.trialstag)+1, g.srate, tmplimit,tpmorder);
-        set(ax1,'XTickLabel', tagtext,'XTick', tagpos-lowlim);	
+        set(ax1,'XTickLabel', tagtext,'XTick', tagpos-lowlim+1 );	
     else
      	set(ax0,'XTickLabel', [],'YTickLabel', [],...
 		'Xlim',[0 g.winlength*multiplier],...
@@ -2021,7 +2029,7 @@ else
     
     ax1 = findobj('tag','backeeg','parent',fig); 
     tmppos = get(ax1, 'currentpoint');
-    if strcmp(get(fig, 'SelectionType'),'normal');
+    if strcmp(get(fig, 'SelectionType'),'normal')
         
         fig = varargin{1};
         g = get(fig,'UserData');       
@@ -2029,14 +2037,15 @@ else
         tmppos = get(ax1, 'currentpoint');       
         g = get(fig,'UserData'); % get data of backgroung image {g.trialstag g.winrej incallback}
         if g.incallback ~= 1 % interception of nestest calls
-            if g.trialstag ~= -1,
+            if g.trialstag ~= -1
                 lowlim = round(g.time*g.trialstag+1);
                 highlim = round(g.winlength*g.trialstag);
-            else,
+            else
                 lowlim  = round(g.time*g.srate+1);
-                highlim = round(g.winlength*g.srate);
+                highlim = round(g.winlength*g.srate); % THIS IS NOT TRUE WHEN ZOOMING
+                
             end
-            if (tmppos(1) >= 0) && (tmppos(1) <= highlim),
+            if (tmppos(1) >= 0) && (tmppos(1) <= highlim)
                 if isempty(g.winrej) Allwin=0;
                 else Allwin = (g.winrej(:,1) < lowlim+tmppos(1)) & (g.winrej(:,2) > lowlim+tmppos(1));
                 end
@@ -2076,7 +2085,7 @@ else
     elseif strcmp(get(fig, 'SelectionType'),'normal');
 
         
-    end;      
+    end   
    otherwise
       error(['Error - invalid eegplot() parameter: ',data])
   end  
@@ -2084,12 +2093,12 @@ end
 % Function to show the value and electrode at mouse position
 function defmotion(varargin)
     fig = varargin{3};
-    ax1 = varargin{4};
+    ax1 = varargin{5};
     tmppos = get(ax1, 'currentpoint'); 
     
     if  all([tmppos(1,1) >= 0,tmppos(1,2)>= 0])
         g = get(fig,'UserData');
-        if g.trialstag ~= -1,
+        if g.trialstag ~= -1
             lowlim = round(g.time*g.trialstag+1);
         else, lowlim = round(g.time*g.srate+1);
         end
@@ -2099,8 +2108,8 @@ function defmotion(varargin)
             eegplot('drawb');
         else
             hh = varargin{6}; % h = findobj('tag','Etime','parent',fig);
-            if g.trialstag ~= -1,
-                tmpval = mod(tmppos(1)+lowlim-1,g.trialstag)/g.trialstag*(g.limits(2)-g.limits(1)) + g.limits(1);
+            if g.trialstag ~= -1
+                tmpval = mod(tmppos(1)+lowlim-1,g.trialstag)/g.trialstag*(g.limits(2)-g.limits(1)+1000/g.srate) + g.limits(1);
                 if g.isfreq, tmpval = tmpval/1000 + g.freqs(1); end
                 set(hh, 'string', num2str(tmpval));
             else

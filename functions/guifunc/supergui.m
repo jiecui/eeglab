@@ -75,19 +75,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [handlers, outheight, allhandlers] = supergui( varargin);
 
@@ -229,6 +240,7 @@ row    = 1; % count the elements
 column = 1; % count the elements
 factmultx = 0;
 factmulty = 0; %zeros(length(g.geomhoriz));
+transformTextUIList = [];
 for counter = 1:maxcount
 
 	% init
@@ -259,17 +271,22 @@ for counter = 1:maxcount
                                           [posx posy+(hf1+hf2)/2*height width/2 0.005].*s+q, 'style', 'pushbutton', 'string', '');
             allhandlers{counter} = nan;
         else
-            if strcmpi(currentelem{1}, 'width'),
+            if strcmpi(currentelem{1}, 'width')
                  curwidth = currentelem{2};
                  currentelem(1:2) = [];
             else curwidth = 0;
             end
-            if strcmpi(currentelem{1}, 'align'),
+            if strcmpi(currentelem{1}, 'align')
                  align = currentelem{2};
                  currentelem(1:2) = [];
             else align = 'right';
             end
-            if strcmpi(currentelem{1}, 'stickto'),
+            transformText = false;
+            if strcmpi(currentelem{2}, 'text2')
+                transformTextUIList = [ transformTextUIList counter ];
+                currentelem{2} = 'text';
+            end
+            if strcmpi(currentelem{1}, 'stickto')
                  stickto = currentelem{2};
                  currentelem(1:2) = [];
             else stickto = 'none';
@@ -301,8 +318,13 @@ for counter = 1:maxcount
                 uitable(g.fig, currentelem{2:end}, 'unit', 'normalized', 'Position',[posx posy+addvert width height*heightfactor].*s+q);
                 allhandlers{counter} = nan;
             else
-                allhandlers{counter} = uicontrol(g.fig, 'unit', 'normalized', 'position', ...
-                    [posx posy+addvert width height*heightfactor].*s+q, currentelem{:}, addParamFont{:});
+                if ~isempty(strmatch('fontsize', currentelem(1:2:end)))
+                    allhandlers{counter} = uicontrol(g.fig, 'unit', 'normalized', 'position', ...
+                        [posx posy+addvert width height*heightfactor].*s+q, currentelem{:});
+                else
+                    allhandlers{counter} = uicontrol(g.fig, 'unit', 'normalized', 'position', ...
+                        [posx posy+addvert width height*heightfactor].*s+q, currentelem{:}, addParamFont{:});
+                end
                 
                 % this simply compute a factor so that all uicontrol will be visible
                 % ------------------------------------------------------------------
@@ -330,15 +352,18 @@ for counter = 1:maxcount
             end
 
             if ~strcmp(style, 'edit') && (~strcmp(style, 'pushbutton') || strcmpi(g.adjustbuttonwidth, 'on'))
-                %tmp = curext(3)/curpos(3);
-                %if tmp > 3*factmultx && factmultx > 0, adsfasd; end
-                factmultx = max(factmultx, curext(3)/curpos(3));
-                if strcmp(style, 'pushbutton'), factmultx = factmultx*1.1; end
+                if strcmpi( currentelem{3}, 'string') && (~iscell(currentelem{4}) || ...
+                        (~isempty(currentelem{4}) && isempty(findstr('html', currentelem{4}{1}))))
+                    %tmp = curext(3)/curpos(3);
+                    %if tmp > 3*factmultx && factmultx > 0, adsfasd; end
+                    factmultx = max(factmultx, curext(3)/curpos(3));
+                    if strcmp(style, 'pushbutton'), factmultx = factmultx*1.1; end
+                end
             end
             if  ~strcmp(style, 'listbox')
                 factmulty = max(factmulty, curext(4)/curpos(4));
             end
-
+            
             % Uniformize button text aspect (first letter must be upercase)
             % -----------------------------
             if strcmp(style, 'pushbutton') && ishandle(allhandlers{counter})
@@ -465,6 +490,22 @@ end;
 % ----------------------
 if ~isempty(g.userdata), set(g.fig, 'userdata', g.userdata); end
 if ~isempty(g.title   ), set(g.fig, 'name',     g.title   ); end
+
+% transform selected text UI
+% --------------------------
+a = axes('position', [0 0 1 1]);
+for iList = transformTextUIList
+    set(allhandlers{iList}, 'unit', 'normalized');
+    sTmp = get(allhandlers{iList},'string');
+    pTmp = get(allhandlers{iList},'position');
+    eTmp = get(allhandlers{iList},'extent');
+    tTmp = get(allhandlers{iList},'tag');
+    % Remove the UICONTROL
+    delete(allhandlers{iList});
+    % Replace it with a TEXT object
+    allhandlers{iList} = text(pTmp(1),pTmp(2),sTmp, 'interpreter','latex', 'tag', tTmp);
+end
+set(a, 'visible', 'off');
 
 return;
 

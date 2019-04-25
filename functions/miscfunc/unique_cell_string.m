@@ -1,4 +1,4 @@
-function uniqueStrings = uniqe_cell_string(c)
+function uniqueStrings = unique_cell_string(c)
 % uniqe string from a cell-array containing only strings, ignores all
 % non-strings.
 

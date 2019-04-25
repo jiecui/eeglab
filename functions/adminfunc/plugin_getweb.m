@@ -1,29 +1,60 @@
+% plugin_getweb - support function to get plugin information from the web
+
+% Copyright (C) 2012- Arnaud Delorme
+%
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
+
 function plugin = plugin_getweb(type, pluginOri, mode)
 
 if nargin < 1, help plugin_getweb; return; end
 if nargin < 2, pluginOri = []; end
-if nargin < 3, mode = 'merge'; end; % 'merge' or 'newlist' or 'update'
+if nargin < 3, mode = 'merge'; end % 'merge' or 'newlist' or 'update'
 
 % convert plugin list format if necessary
 if isfield(pluginOri, 'plugin'), pluginOri = plugin_convert(pluginOri); end
 
 try
-    disp( [ 'Retreiving URL with ' type ' extensions...' ] );
+    disp( [ 'Retreiving plugins with extensions...' ] );
     if strcmpi(type, 'import')
-        [tmp status] = plugin_urlread('http://sccn.ucsd.edu/wiki/Plugin_list_import');
+    	[webPage, status] = plugin_urlread('https://sccn.ucsd.edu/wiki/Plugin_list_import');
+    elseif strcmpi(type, 'process')
+    	[webPage, status] = plugin_urlread('https://sccn.ucsd.edu/wiki/Plugin_list_process');
     else
-        [tmp status] = plugin_urlread('http://sccn.ucsd.edu/wiki/Plugin_list_process');
+    	[webPage, status] = plugin_urlread('https://sccn.ucsd.edu/wiki/Plugin_list_all');
     end
-catch,
+catch
     error('Cannot connect to the Internet to retrieve extension list');
 end
 
 % retreiving download statistics
 try
     disp( [ 'Retreiving download statistics...' ] );
-    [stats status] = plugin_urlread('http://sccn.ucsd.edu/eeglab/plugin_uploader/plugin_getcountall.php');
-    stats = textscan(stats, '%s%d%s%s');
-catch,
+    [stats, status] = plugin_urlread('http://sccn.ucsd.edu/eeglab/plugin_uploader/plugin_getcountall_with_rating.php');
+    stats = textscan(stats, '%s%d%s%s%f%d', 'delimiter', char(9));
+catch
     stats = {};
     disp('Cannot connect to the Internet to retrieve statistics for extensions');
 end
@@ -35,7 +66,7 @@ end
 % parse the web page
 % ------------------
 try
-    plugin = parseTable(tmp);
+    plugin = parseTable(webPage);
 catch
     error('Cannot parse extension list - please contact eeglab@sccn.ucsd.edu');
 end
@@ -57,13 +88,17 @@ for iRow = 1:length(plugin)
         indMatch = strmatch(lower(plugin(iRow).name), lower(stats{1}), 'exact');
         if ~isempty(indMatch)
              plugin(iRow).downloads = stats{2}(indMatch(1));
-             if length(stats) > 2 && ~isempty(stats{3}{indMatch(1)})
+             if length(stats) > 2 && ~isempty(stats{4}{indMatch(1)})
                  plugin(iRow).version   = stats{3}{indMatch(1)};
                  plugin(iRow).zip       = stats{4}{indMatch(1)};
              end
-        else plugin(iRow).downloads = 0;
+             plugin(iRow).rating    = stats{5}(indMatch(1));
+             plugin(iRow).numrating = stats{6}(indMatch(1));
+        else
+            plugin(iRow).downloads = 0;
         end
-    else plugin(iRow).downloads = 0;
+    else
+        plugin(iRow).downloads = 0;
     end
     
     % match with existiting plugins
@@ -161,12 +196,26 @@ end
 for iRow = 1:size(table,1)
     
     % get link
-    [plugin(iRow).name plugin(iRow).webdoc] = parsehttplink(table{iRow,1});
+    [plugin(iRow).name, plugin(iRow).webdoc] = parsehttplink(table{iRow,1});
     plugin(iRow).version = table{iRow,2};
+    
+    % description
     tmp = deblank(table{iRow,3}(end:-1:1));
     plugin(iRow).description = deblank(tmp(end:-1:1));
-    [tmp plugin(iRow).zip] = parsehttplink(table{iRow,4});
     
+    % zip file
+    [~,plugin(iRow).zip] = parsehttplink(table{iRow,4});
+
+    % tags
+    tmpTags = textscan(table{iRow,5}, '%s', 'delimiter', ',');
+    tmpTags = tmpTags{1}';
+    plugin(iRow).tags = tmpTags;
+    tmpTags(2,:) = { ', ' };
+    plugin(iRow).rawtags = [ tmpTags{:} ];
+    plugin(iRow).rawtags(end-1:end) = [];
+    
+    % rating link
+    plugin(iRow).webrating = [ 'https://sccn.ucsd.edu/eeglab/plugin_uploader/simplestar.php?plugin=' plugin(iRow).name '&version=' plugin(iRow).version ];
 end
 
 function [txt link] = parsehttplink(currentRow)
@@ -188,3 +237,13 @@ function [txt link] = parsehttplink(currentRow)
         end
         txt = currentRow;
     end
+
+function plugin = plugin_convert(pluginOri)
+
+for iRow = 1:length(pluginOri)
+    plugin(iRow).currentversion = pluginOri(iRow).version;
+    plugin(iRow).foldername     = pluginOri(iRow).foldername;
+    plugin(iRow).status         = pluginOri(iRow).status;
+    plugin(iRow).name           = pluginOri(iRow).plugin;
+    plugin(iRow).installed      = 1;
+end

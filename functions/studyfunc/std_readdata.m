@@ -47,19 +47,30 @@
 
 % Copyright (C) Arnaud Delorme, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [STUDY, datavals, xvals, yvals, events, params] = std_readdata(STUDY, ALLEEG, varargin)
 
@@ -105,10 +116,6 @@ if ~isempty(opt.channels), fileExt = [ '.dat' tmpDataType ];
 else                       fileExt = [ '.ica' tmpDataType ];
 end
 
-% first subject data file
-% -----------------------
-testSubjectFile = fullfile(ALLEEG(1).filepath, [ ALLEEG(1).subject fileExt ]);
-
 % list of subjects
 % ----------------
 allSubjects = { STUDY.datasetinfo.subject };
@@ -141,6 +148,13 @@ if isempty(opt.channels) && strcmpi(dtype, 'erp') && strcmpi(opt.componentpol, '
     end
 end
 
+% get all sessions (same code as std_readdat)
+% -------------------------------------------
+allSessions = { STUDY.datasetinfo.session };
+allSessions(cellfun(@isempty, allSessions)) = { 1 };
+allSessions = cellfun(@num2str, allSessions, 'uniformoutput', false);
+uniqueSessions = unique(allSessions);
+
 for iSubj = 1:length(subjectList)
     fprintf('.');
     
@@ -165,12 +179,21 @@ for iSubj = 1:length(subjectList)
         datasetInds = strmatch(subjectList{iSubj}, { STUDY.datasetinfo.subject }, 'exact');
         compList    = [];
         polList     = [];
-        for iDat = datasetInds(:)'
-            indSet   = find(STUDY.cluster(opt.clusters).sets(1,:) == iDat); % each column contain info about the same subject
-            if ~isempty(indSet)
-                compList = [ compList STUDY.cluster(opt.clusters).comps(indSet)' ]; % so we many only consider the first row
+        if isempty(opt.component)
+            for iDat = datasetInds(:)'
+                indSet   = find(STUDY.cluster(opt.clusters).sets(1,:) == iDat); % each column contain info about the same subject so we many only consider the first row
+                if ~isempty(indSet)
+                    compList = [ compList STUDY.cluster(opt.clusters).comps(indSet) ];
+                    if strcmpi(dtype, 'erp') && strcmpi(opt.componentpol, 'on')
+                        polList  = [ polList  componentPol(indSet) ];
+                    end
+                end
+            end
+        else
+            if ~isempty(intersect(datasetInds, STUDY.cluster(opt.clusters).sets(:,opt.component)))
+                compList = [ compList STUDY.cluster(opt.clusters).comps(opt.component) ];
                 if strcmpi(dtype, 'erp') && strcmpi(opt.componentpol, 'on')
-                    polList  = [ polList  componentPol(indSet)' ];
+                    polList  = [ polList  componentPol(opt.component) ];
                 end
             end
         end
@@ -188,7 +211,8 @@ for iSubj = 1:length(subjectList)
         params           = tmpstruct{5};
     else
         datInds = find(strncmp( subjectList{iSubj}, allSubjects, max(cellfun(@length, allSubjects))));
-        fileName = fullfile(STUDY.datasetinfo(datInds(1)).filepath, [ subjectList{iSubj} fileExt ]);
+        
+        fileName = getfilename({STUDY.datasetinfo(datInds).filepath}, STUDY.datasetinfo(datInds(1)).subject, { STUDY.datasetinfo(datInds).session }, fileExt, length(uniqueSessions) == 1);
         if ~isempty(opt.channels)
              [dataTmp{iSubj}, params, xvals, yvals, eventsTmp{iSubj} ] = std_readfile( fileName, 'designvar', struct(bigstruct.design.variable), opts{:}, 'channels', opt.channels);
         else [dataTmp{iSubj}, params, xvals, yvals, eventsTmp{iSubj} ] = std_readfile( fileName, 'designvar', struct(bigstruct.design.variable), opts{:}, 'components', compList);
@@ -202,6 +226,9 @@ for iSubj = 1:length(subjectList)
             end
             if strcmpi(opt.singletrials, 'off')
                 dataTmp{iSubj} = cellfun(@(x)squeeze(mean(x,2)), dataTmp{iSubj}, 'uniformoutput', false); % average
+            end
+            if strcmpi(opt.datatype, 'spec') && isfield(params, 'logtrials') && strcmpi(params.logtrials, 'off') % if log trial if off it means that single trials are raw power so we need to take the log of the mean
+                dataTmp{iSubj} = cellfun(@(x)squeeze(10*log10(x)), dataTmp{iSubj}, 'uniformoutput', false); % average
             end
         elseif strcmpi(opt.datatype, 'erpim')
             %dataTmp{iSubj} = cellfun(@(x)processerpim(x, xvals, params), dataTmp{iSubj}, 'uniformoutput', false);
@@ -249,6 +276,32 @@ else
     events = {};
 end
 
+if ~isempty(opt.clusters)
+    % Split ICA components from the same subjects need to be made 
+    % as if coming from different subjects
+    dataTmp2 = {};
+    realDim  = dim;
+    if strcmpi(opt.singletrials, 'on'), realDim = realDim+1; end
+    for iDat1 = 1:length(dataTmp)
+        compNumbers = cellfun(@(x)size(x, realDim), dataTmp{iDat1});
+        if length(unique(compNumbers)) > 1
+            error('Cannot handle conditions with different number of components');
+        end
+        
+        for iComps = 1:compNumbers(1)
+            dataTmp2{end+1} = [];
+            for iDat2 = 1:length(dataTmp{iDat1}(:))
+                % check dimensions of components
+                if strcmpi(opt.singletrials, 'on') && strcmpi(tmpDataType, 'timef'),    dataTmp2{end}{iDat2} = dataTmp{iDat1}{iDat2}(:,:,:,iComps);
+                elseif strcmpi(opt.singletrials, 'on') || strcmpi(tmpDataType, 'timef') dataTmp2{end}{iDat2} = dataTmp{iDat1}{iDat2}(:,:,iComps);
+                else                                                                    dataTmp2{end}{iDat2} = dataTmp{iDat1}{iDat2}(:,iComps);
+                end
+            end
+            dataTmp2{end} = reshape(dataTmp2{end}, size(dataTmp{iDat1}));
+        end
+    end
+    dataTmp = dataTmp2;
+end
 datavals = reorganizedata(dataTmp, dim);
 
 % reorganize data
@@ -395,9 +448,32 @@ function [dataout, eventout] = processerpim(dataSubject, events, xvals, g)
     nlines = (lastx-xwidth)/(nout-0.5)*i; % make it imaginary
     %nlines = ceil(lastx/((lastx-firstx+1-xwidth)/(nout-1)));
            
+    if ~isempty(params) && ischar(params{1}) && strcmpi(params{1}, 'components')
+        params(1:2) = [];
+    end
     [dataout, eventout] = erpimage(dataSubject, events, xvals, '', smoothing, nlines, 'noplot', 'on', params{:});
     if ~isempty(events)
         eventout = eventout'; % needs to be a column vector
     else
         eventout = [];
     end
+
+% get file base name: filepath and sess are cell array (in case 2 files per subject)
+% ----------------------------------------------------------------------------------
+function filebase = getfilename(filepath, subj, sess, fileSuffix, onlyOneSession)
+if onlyOneSession
+    filebase = fullfile(filepath{1}, [ subj fileSuffix ] );
+else
+    if isempty(sess)
+        sess = { '1' };
+    end
+    for iSess = 1:length(sess)
+        if isnumeric(sess{iSess})
+            sesStr   = [ '0' num2str(sess{iSess}) ];
+        else
+            sesStr   = [ '0' sess{iSess} ];
+        end
+        filebase{iSess} = fullfile(filepath{iSess}, [ subj '_ses-' sesStr(end-1:end) fileSuffix ] );
+    end
+end    
+    

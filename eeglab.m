@@ -29,9 +29,9 @@
 %            >> eeglab rebuild   % Closes and rebuilds the EEGLAB window
 %            >> eeglab versions  % State EEGLAB version number
 %
-%   >> type "license.txt" % the GNU public license
-%   >> web http://sccn.ucsd.edu/eeglab/tutorial/ % the EEGLAB tutorial
-%   >> help eeg_checkset  % the EEG dataset structure
+%   >> type "eeglablicense.txt" % the EEGLAB open source license
+%   >> web http://eeglab.org    % the EEGLAB tutorial
+%   >> help eeg_checkset        % the EEG dataset structure
 %
 % GUI Functions calling eponymous processing and plotting functions:
 % ------------------------------------------------------------------
@@ -42,9 +42,6 @@
 % <a href="matlab:helpwin pop_epoch">pop_epoch</a>     - extract epochs from a continuous dataset (epoch())
 % <a href="matlab:helpwin pop_erpimage">pop_erpimage</a>  - plot single epochs as an image (erpimage())
 % <a href="matlab:helpwin pop_jointprob">pop_jointprob</a> - reject epochs using joint probability (jointprob())
-% <a href="matlab:helpwin pop_loaddat">pop_loaddat</a>   - load Neuroscan .DAT info file (loaddat())
-% <a href="matlab:helpwin pop_loadcnt">pop_loadcnt</a>   - load Neuroscan .CNT data (lndcnt())
-% <a href="matlab:helpwin pop_loadeeg">pop_loadeeg</a>   - load Neuroscan .EEG data (loadeeg())
 % <a href="matlab:helpwin pop_loadbva">pop_loadbva</a>   - load Brain Vision Analyser matlab files
 % <a href="matlab:helpwin pop_plotdata">pop_plotdata</a>  - plot data epochs in rectangular array (plotdata())
 % <a href="matlab:helpwin pop_readegi">pop_readegi</a>   - load binary EGI data file (readegi())
@@ -123,19 +120,32 @@
 % Copyright (C) 2001 Arnaud Delorme and Scott Makeig, Salk Institute,
 % arno@salk.edu, smakeig@ucsd.edu.
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% Copyright (C) 2001 Arnaud Delorme, SCCN/INC/UCSD, arno@salk.edu
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function varargout = eeglab( onearg )
 
@@ -454,6 +464,7 @@ e_histdone      = [e_catch 'EEG = eegh(LASTCOM, EEG); if ~isempty(LASTCOM), disp
 
 % study checking
 % --------------
+e_check_study = 'if length(EEG) > 1 && CURRENTSTUDY == 1, STUDY = std_checkset(STUDY, ALLEEG); eegh(''STUDY = std_checkset(STUDY, ALLEEG);''); end;';
 e_load_study = [e_catch 'if ~isempty(LASTCOM), STUDY = STUDYTMP; STUDY = eegh(LASTCOM, STUDY); ALLEEG = ALLEEGTMP; EEG = ALLEEG; CURRENTSET = [1:length(EEG)]; eegh(''CURRENTSTUDY = 1; EEG = ALLEEG; CURRENTSET = [1:length(EEG)];''); CURRENTSTUDY = 1; disp(''Done.''); end; clear ALLEEGTMP STUDYTMP; eeglab(''redraw'');'];
 e_plot_study = [e_catch 'if ~isempty(LASTCOM), STUDY = STUDYTMP; STUDY = eegh(LASTCOM, STUDY); disp(''Done.''); end; clear ALLEEGTMP STUDYTMP; eeglab(''redraw'');']; % ALLEEG not modified
 
@@ -501,17 +512,13 @@ if ~isdeployed
 end
 
 cb_importdata  = [ nocheck '[EEG LASTCOM] = pop_importdata;'   e_newset ];
-cb_loadcnt     = [ nocheck '[EEG LASTCOM] = pop_loadcnt;'      e_newset ]; 
-cb_loadeeg     = [ nocheck '[EEG LASTCOM] = pop_loadeeg;'      e_newset ]; 
 cb_biosig      = [ nocheck '[EEG LASTCOM] = pop_biosig; '      e_newset ]; 
 cb_fileio      = [ nocheck '[EEG LASTCOM] = pop_fileio; '      e_newset ]; 
 
 cb_importepoch = [ checkepoch   '[EEG LASTCOM] = pop_importepoch(EEG);'   e_store ];
-cb_loaddat     = [ checkepoch   '[EEG LASTCOM]= pop_loaddat(EEG);'        e_store ]; 
 cb_importevent = [ check        '[EEG LASTCOM] = pop_importevent(EEG);'   e_store ];
 cb_chanevent   = [ check        '[EEG LASTCOM]= pop_chanevent(EEG);'      e_store ]; 
 cb_importpres  = [ check        '[EEG LASTCOM]= pop_importpres(EEG);'     e_store ]; 
-cb_importev2   = [ check        '[EEG LASTCOM]= pop_importev2(EEG);'      e_store ]; 
 cb_importerplab= [ check        '[EEG LASTCOM]= pop_importerplab(EEG);'   e_store ]; 
 cb_export      = [ check        'LASTCOM = pop_export(EEG);'              e_histdone ];
 cb_expica1     = [ check        'LASTCOM = pop_expica(EEG, ''weights'');' e_histdone ]; 
@@ -532,8 +539,7 @@ cb_savestudy2  = [ check   '[STUDYTMP ALLEEGTMP LASTCOM] = pop_savestudy(STUDY, 
 cb_clearstudy  =           'LASTCOM = ''STUDY = []; CURRENTSTUDY = 0; ALLEEG = []; EEG=[]; CURRENTSET=[];''; eval(LASTCOM); eegh( LASTCOM ); eeglab redraw;';
 cb_editoptions = [ nocheck 'if isfield(ALLEEG, ''nbchan''), LASTCOM = pop_editoptions(length([ ALLEEG.nbchan ]) >1);' ...
                            'else                            LASTCOM = pop_editoptions(0); end;'                  e_storeall_nh];
-cb_plugin1     = [ nocheck 'if plugin_extract(''import'', PLUGINLIST) , close(findobj(''tag'', ''EEGLAB'')); eeglab redraw; end;' e_hist_nh ];
-cb_plugin2     = [ nocheck 'if plugin_extract(''process'', PLUGINLIST), close(findobj(''tag'', ''EEGLAB'')); eeglab redraw; end;' e_hist_nh ];
+cb_plugin      = [ nocheck 'if plugin_menu(PLUGINLIST) , close(findobj(''tag'', ''EEGLAB'')); eeglab redraw; end;' e_hist_nh ];
 
 cb_saveh1      = [ nocheck 'LASTCOM = pop_saveh(EEG.history);' e_hist_nh];
 cb_saveh2      = [ nocheck 'LASTCOM = pop_saveh(ALLCOM);'      e_hist_nh];
@@ -565,7 +571,7 @@ cb_reref       = [ check      '[EEG LASTCOM] = pop_reref(EEG);'    e_newset];
 cb_eegplot     = [ checkcont  '[LASTCOM] = pop_eegplot(EEG, 1);'   e_hist];
 cb_epoch       = [ check      '[EEG tmp LASTCOM] = pop_epoch(EEG); clear tmp;' e_newset check '[EEG LASTCOM] = pop_rmbase(EEG);' e_newset];
 cb_rmbase      = [ check      '[EEG LASTCOM] = pop_rmbase(EEG);'   e_newset];
-cb_runica      = [ check      '[EEG LASTCOM] = pop_runica(EEG);'   e_store];
+cb_runica      = [ check      '[EEG LASTCOM] = pop_runica(EEG);'   e_store e_check_study];
 cb_subcomp     = [ checkica   '[EEG LASTCOM] = pop_subcomp(EEG);'  e_newset];
 %cb_chanrej     = [ check      'pop_rejchan(EEG); LASTCOM = '''';'  e_hist];
 cb_chanrej     = [ check      '[EEG tmp1 tmp2 LASTCOM] = pop_rejchan(EEG); clear tmp1 tmp2;'  e_hist];
@@ -689,8 +695,6 @@ if ismatlab
     uimenu( neuro_m, 'Label', '(for more use menu File > Manage EEGLAB extensions)', 'userdata', 'enable:off');
     uimenu( neuro_m, 'Label', 'From ASCII/float file or Matlab array' , 'CallBack', cb_importdata, 'separator', 'on');
     %uimenu( neuro_m, 'Label', 'From Netstation .mff (FILE-IO toolbox)', 'CallBack', cb_fileio2,    'Separator', 'on'); 
-    uimenu( neuro_m, 'Label', 'From Neuroscan .CNT file'              , 'CallBack', cb_loadcnt,    'Separator', 'on'); 
-    uimenu( neuro_m, 'Label', 'From Neuroscan .EEG file'              , 'CallBack', cb_loadeeg); 
 
     % BIOSIG MENUS
     % ------------
@@ -698,12 +702,10 @@ if ismatlab
     uimenu( neuro_m, 'Label', 'From EDF/EDF+/GDF files (BIOSIG toolbox)', 'CallBack', cb_biosig); 
 
     uimenu( epoch_m, 'Label', 'From Matlab array or ASCII file'       , 'CallBack', cb_importepoch);
-    uimenu( epoch_m, 'Label', 'From Neuroscan .DAT file'              , 'CallBack', cb_loaddat); 
     uimenu( event_m, 'Label', 'From Matlab array or ASCII file'       , 'CallBack', cb_importevent);
     uimenu( event_m, 'Label', 'From data channel'                     , 'CallBack', cb_chanevent); 
     uimenu( event_m, 'Label', 'From Presentation .LOG file'           , 'CallBack', cb_importpres); 
     uimenu( event_m, 'Label', 'From E-Prime ASCII (text) file'        , 'CallBack', cb_importevent);
-    uimenu( event_m, 'Label', 'From Neuroscan .ev2 file'              , 'CallBack', cb_importev2); ;
     uimenu( event_m, 'Label', 'From ERPLAB text files'                , 'CallBack', cb_importerplab); 
 
     uimenu( exportm, 'Label', '(for more use menu File > Manage EEGLAB extensions)', 'userdata', 'enable:off');
@@ -734,12 +736,8 @@ if ismatlab
     uimenu( hist_m, 'Label', 'Save session history script'            , 'userdata', ondatastudy, 'CallBack', cb_saveh2);    
     uimenu( hist_m, 'Label', 'Run script'                             , 'userdata', on         , 'CallBack', cb_runsc);    
 
-    plugin_m = uimenu( file_m,   'Label', 'Manage EEGLAB extensions'  , 'userdata', on);
     if ~isdeployed
-        uimenu( plugin_m, 'Label', 'Data import extensions'               , 'userdata', on         , 'CallBack', cb_plugin1);    
-        uimenu( plugin_m, 'Label', 'Data processing extensions'           , 'userdata', on         , 'CallBack', cb_plugin2);    
-    else
-        uimenu( plugin_m, 'Label', 'This menu is not active for the EEGLAB compiled version'       , 'enable', 'off');    
+        uimenu( file_m,   'Label', 'Manage EEGLAB extensions'  , 'userdata', on, 'CallBack', cb_plugin);
     end
     uimenu( file_m, 'Label', 'Quit'                                   , 'userdata', on     , 'CallBack', cb_quit, 'Separator', 'on');
 
@@ -893,44 +891,7 @@ else
     p = mywhich('eeglab.m');
     p = p(1:findstr(p,'eeglab.m')-1);
     if strcmpi(p, './') || strcmpi(p, '.\'), p = [ pwd filesep ]; end
-    
-    % scan deactivated plugin folder
-    % ------------------------------
-    dircontent  = dir(fullfile(p, 'deactivatedplugins'));
-    dircontent  = { dircontent.name };
-    for index = 1:length(dircontent)
-        funcname = '';
-        pluginVersion = '';
-        if exist([p 'deactivatedplugins' filesep dircontent{index}]) == 7
-            if ~strcmpi(dircontent{index}, '.') && ~strcmpi(dircontent{index}, '..')
-                tmpdir = dir([ p 'deactivatedplugins' filesep dircontent{index} filesep 'eegplugin*.m' ]);
-                [ pluginName pluginVersion ] = parsepluginname(dircontent{index});
-                if ~isempty(tmpdir)
-                    funcname = tmpdir(1).name(1:end-2);
-                end
-            end
-        else 
-            if ~isempty(findstr(dircontent{index}, 'eegplugin')) && dircontent{index}(end) == 'm'
-                funcname = dircontent{index}(1:end-2); % remove .m
-                [ pluginName pluginVersion ] = parsepluginname(dircontent{index}(10:end-2));
-            end
-        end
-        if ~isempty(pluginVersion)
-            pluginlist(plugincount).plugin     = pluginName;
-            pluginlist(plugincount).version    = pluginVersion;
-            pluginlist(plugincount).foldername = dircontent{index};
-            if ~isempty(funcname)
-                 pluginlist(plugincount).funcname   = funcname(10:end);
-            else pluginlist(plugincount).funcname   = '';
-            end
-            if length(pluginlist(plugincount).funcname) > 1 && pluginlist(plugincount).funcname(1) == '_'
-                pluginlist(plugincount).funcname(1) = [];
-            end 
-            pluginlist(plugincount).status = 'deactivated';
-            plugincount = plugincount+1;
-        end
-    end
-    
+        
     % scan plugin folder
     % ------------------
     dircontent  = dir(fullfile(p, 'plugins'));
@@ -1067,6 +1028,14 @@ else
             cb_mff = [ 'if ~plugin_askinstall(''mffmatlabio'', ''mff_import''), return; end;' ...
                        'eval(char(get(findobj(''label'', ''Import Philips .mff file''), ''callback'')));' ];
             uimenu( neuro_m, 'Label', 'Import Philips .mff file', 'CallBack', cb_mff, 'separator', 'on');
+        end
+        if ~exist('eegplugin_neuroscanio', 'file')
+            neuro_m = findobj(W_MAIN, 'tag', 'import data');
+            neuroscan_check = 'if ~plugin_askinstall(''neuroscanio'', ''eegplugin_neuroscanio''), return; end;';
+            cb_neuroscan1 = [ neuroscan_check 'eval(char(get(findobj(''label'', ''From Neuroscan .CNT file''), ''callback'')));' ];
+            cb_neuroscan2 = [ neuroscan_check 'eval(char(get(findobj(''label'', ''From Neuroscan .EEG file''), ''callback'')));' ];
+            uimenu( neuro_m, 'Label', 'From Neuroscan .CNT file', 'CallBack', cb_neuroscan1, 'Separator', 'on');
+            uimenu( neuro_m, 'Label', 'From Neuroscan .EEG file', 'CallBack', cb_neuroscan2);
         end
         if ~exist('eegplugin_firfilt', 'file')
             neuro_m = findobj(W_MAIN, 'tag', 'filter');

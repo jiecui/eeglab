@@ -1,14 +1,12 @@
 % biosig2eeglabevent() - convert biosig events to EEGLAB event structure
 %
 % Usage:
-%   >> eeglabevent = biosig2eeglabevent( biosigevent, interval, mode)
+%   >> eeglabevent = biosig2eeglabevent( biosigevent, interval)
 %
 % Inputs:
 %   biosigevent    - BioSig event structure
 %   interval       - Period to extract events for, in frames.
 %                    Default [] is all.
-%   mode           - [], 0: old behavior: event(i).type contains numeric event type
-%                    1: new behavior: event(i).type may contain textual event annotation
 %
 % Outputs:
 %   eeglabevent    - EEGLAB event structure
@@ -16,29 +14,36 @@
 % Author: Arnaud Delorme, SCCN, INC, UCSD, 2006-
 
 % Copyright (C) 13 2006- Arnaud Delorme, Salk Institute, arno@salk.edu
-% Copyright (C) 2016 Alois Schloegl <alois.schloegl@gmail.com
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
-function event = biosig2eeglabevent(EVENT, interval, mode)
+function event = biosig2eeglabevent(EVENT, interval, unused)
 
 if nargin < 2
     interval = [];
-end
-if (nargin < 3) || isempty(mode)
-    mode = 0;
 end
 
 event = [];
@@ -54,15 +59,7 @@ if isempty(interval)
     if isfield(EVENT, 'TYP')
         for index = 1:length( EVENT.TYP )
             typ = EVENT.TYP(index);
-            if (mode==0)
-                event(index).type = typ;
-            elseif (typ<256)
-                event(index).type = EVENT.CodeDesc{typ};
-            elseif isfield(EVT, 'Event') && isfield(EVT.Event,'CodeIndex') && isfield(EVT.Event,'CodeDesc')
-                event(index).type = EVENT.CodeDesc{EVENT.CodeIndex==typ};
-            else
-                event(index).type = typ;
-            end
+            event(index).type = typ;
         end
     end
     if isfield(EVENT, 'POS')
@@ -94,15 +91,7 @@ elseif isfield(EVENT,'POS')
             event(count).latency = pos_tmp;
             if isfield(EVENT, 'TYP')
                 typ = EVENT.TYP(index);
-                if (mode==0)
-                    event(count).type = typ;
-                elseif (typ<256)
-                    event(count).type = EVENT.CodeDesc{typ};
-                elseif isfield(EVT, 'Event') && isfield(EVT.Event,'CodeIndex') && isfield(EVT.Event,'CodeDesc')
-                    event(count).type = EVENT.CodeDesc{EVENT.CodeIndex==typ};
-                else
-                    event(count).type = typ;
-                end
+                event(count).type = typ;
             end
             if isfield(EVENT, 'CHN')
                 event(count).chanindex = EVENT.CHN(index);

@@ -83,19 +83,30 @@
 
 % Copyright (C) Arnaud Delorme, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [STUDY, allersp, alltimes, allfreqs, pgroup, pcond, pinter, events] = std_erspplot(STUDY, ALLEEG, varargin)
 
@@ -148,7 +159,7 @@ options = mystruct(varargin);
 options = myrmfield( options, myfieldnames(params));
 options = myrmfield( options, myfieldnames(statstruct.etc.statistics));
 options = myrmfield( options, { 'threshold' 'statistics' } ); % for backward compatibility
-[ opt moreparams ] = finputcheck( options, { ...
+[ opt, moreparams ] = finputcheck( options, { ...
                                'design'      'integer' [] STUDY.currentdesign;
                                'caxis'       'real'    [] [];
                                'statmode'    'string'  [] ''; % deprecated
@@ -165,7 +176,7 @@ options = myrmfield( options, { 'threshold' 'statistics' } ); % for backward com
                                   'std_erspstatplot', 'ignore');
 if ischar(opt), error(opt); end
 if strcmpi(opt.noplot, 'on'), opt.plotmode = 'none'; end
-if isempty(opt.caxis), 
+if isempty(opt.caxis)
     if strcmpi(opt.datatype, 'ersp')
          opt.caxis = params.ersplim;
     elseif strcmpi(opt.datatype, 'itc') && ~isempty(params.itclim)
@@ -218,15 +229,19 @@ plottfopt = { ...
    'threshold',   alpha, ...
    'effect',      stats.effect, ...
    'maskdata',    params.maskdata };
-if ~isempty(params.plottf) && length(opt.channels) < 5
+if ~isempty(params.plottf) && length(opt.channels) < 5  && isempty(opt.clusters)
     warndlg2(strvcat('ERSP/ITC parameters indicate that you wish to plot scalp maps', 'Select at least 5 channels to plot topography'));
     allersp = {}; alltimes = []; allfreqs = []; pgroup = []; pcond = []; pinter = []; events  = [];
     return;
 end    
 
+
 % plot single scalp map
 % ---------------------
 if ~isempty(opt.channels)
+    if isempty(params.plottf) && length(opt.channels) > 1 && strcmpi(stats.singletrials, 'on')
+        error('Cannot plot several channels on the same figure when using single trial statistics');
+    end
 
     [STUDY, allersp, alltimes, allfreqs, events, paramsersp] = std_readdata(STUDY, ALLEEG, 'channels', opt.channels, 'timerange', params.timerange, ...
         'freqrange', params.freqrange, 'subject', opt.subject, 'singletrials', stats.singletrials, 'design', opt.design, 'datatype', opt.datatype, 'subbaseline', params.subbaseline);
@@ -255,17 +270,41 @@ if ~isempty(opt.channels)
     %   'singletrials', stats.singletrials, 'subbaseline', params.subbaseline, 'timerange', params.timerange, 'freqrange', params.freqrange, 'design', opt.design, 'concatenate', params.concatenate);
     %toc
     
+    % average single trials
+    % ---------------------
+    if strcmpi(opt.datatype, 'ersp')
+        if  strcmpi(params.subbaseline, 'on')
+            disp('Computing common baseline has changed since EEGLAB 14: averaging baselines is now');
+            disp('performed before log-transformation of the baseline - in a similar way that baseline'); 
+            disp('is averaged accross trials (log transformation is only performed at the end for display)'); 
+            % see above for rational for baseline
+            paramsersp.singletrials = stats.singletrials;
+            paramsersp.commonbase   = params.subbaseline;
+            allersp = newtimefbaseln(allersp, alltimes, paramsersp);
+        else
+            paramsersp.singletrials = stats.singletrials;
+            allersp = cellfun(@(x)newtimefbaseln(x, alltimes, paramsersp), allersp, 'uniformoutput', false);
+        end
+        % transform to log (except single trials where the transformation
+        % is after taking the average - which is after doing stats
+        if strcmpi(stats.singletrials, 'off')
+            if ~isfield(paramsersp, 'scale') || strcmpi(paramsersp.scale, 'log')
+                allersp = cellfun(@(x)10*log10(x), allersp, 'uniformoutput', false);
+            end
+        end
+    end
+    
     % select specific time and freq
     % -----------------------------
     if ~isempty(params.plottf)
-        if length(params.plottf) < 3, 
+        if length(params.plottf) < 3
             params.plottf(3:4) = params.plottf(2);
             params.plottf(2)   = params.plottf(1);
         end
-        [tmp fi1] = min(abs(allfreqs-params.plottf(1)));
-        [tmp fi2] = min(abs(allfreqs-params.plottf(2)));
-        [tmp ti1] = min(abs(alltimes-params.plottf(3)));
-        [tmp ti2] = min(abs(alltimes-params.plottf(4)));
+        [~, fi1] = min(abs(allfreqs-params.plottf(1)));
+        [~, fi2] = min(abs(allfreqs-params.plottf(2)));
+        [~, ti1] = min(abs(alltimes-params.plottf(3)));
+        [~, ti2] = min(abs(alltimes-params.plottf(4)));
         for index = 1:length(allersp(:))
             allersp{index} = mean(mean(allersp{index}(fi1:fi2,ti1:ti2,:,:),1),2);
             allersp{index} = reshape(allersp{index}, [1 size(allersp{index},3) size(allersp{index},4) ]);
@@ -279,32 +318,28 @@ if ~isempty(opt.channels)
         [pcond pgroup pinter] = std_stat(allersp, stats);
         if (~isempty(pcond) && length(pcond{1}) == 1) || (~isempty(pgroup) && length(pgroup{1}) == 1), pcond = {}; pgroup = {}; pinter = {}; end % single subject STUDY                                
     else
-        [pcond pgroup pinter] = std_stat(allersp, stats);
+        [pcond, pgroup, pinter] = std_stat(allersp, stats);
         if (~isempty(pcond ) && (size( pcond{1},1) == 1 || size( pcond{1},2) == 1)) || ...
-           (~isempty(pgroup) && (size(pgroup{1},1) == 1 || size(pgroup{1},2) == 1)), 
+           (~isempty(pgroup) && (size(pgroup{1},1) == 1 || size(pgroup{1},2) == 1))
             pcond = {}; pgroup = {}; pinter = {}; 
             disp('No statistics possible for single subject STUDY');
         end % single subject STUDY                                
     end
-
-    % average single trials
-    % ---------------------
-    if strcmpi(opt.datatype, 'ersp')
-        if strcmpi(stats.singletrials, 'on')
+    
+    if strcmpi(stats.singletrials, 'on')
+        % For ITC this is optional but it does not change anything
+        if strcmpi(opt.datatype, 'ersp')
             if ndims(allersp{1}) == 4, for ind = 1:length(allersp(:)), allersp{ind} = mean(allersp{ind},4); end; end
             if ndims(allersp{1}) == 3, for ind = 1:length(allersp(:)), allersp{ind} = mean(allersp{ind},3); end; end
-        end
-        if  strcmpi(params.subbaseline, 'on')
-            % see above for rational for baseline
-            paramsersp.singletrials = stats.singletrials;
-            paramsersp.commonbase   = params.subbaseline;
-            allersp = newtimefbaseln(allersp, alltimes, paramsersp);
-        else
-            allersp = cellfun(@(x)newtimefbaseln(x, alltimes, paramsersp), allersp, 'uniformoutput', false);
-        end
-        % transform to log
-        if  isfield(paramsersp, 'freqscale') && strcmpi(paramsersp.freqscale, 'log')
-            allersp = cellfun(@(x)10*log10(x), allersp, 'uniformoutput', false);
+            if strcmpi(opt.datatype, 'ersp') && (~isfield(paramsersp, 'scale') || strcmpi(paramsersp.scale, 'log'))
+                allersp = cellfun(@(x)10*log10(x), allersp, 'uniformoutput', false);
+            end
+        elseif strcmpi(opt.datatype, 'itc')
+            if ~isfield(params, 'itctype'), params.itctype = 'phasecoher'; end
+            for iDat = 1:length(allersp(:))
+                allersp{iDat} = newtimefitc(allersp{iDat}, params.itctype);
+                allersp{iDat} = abs(allersp{iDat});
+            end
         end
     end
     
@@ -322,7 +357,7 @@ if ~isempty(opt.channels)
             std_chantopo(allersp, 'groupstats', pgroup, 'condstats', pcond, 'interstats', pinter, 'caxis', opt.caxis, ...
                                           'chanlocs', locs, 'threshold', alpha, 'titles', alltitles);
         else
-            if length(opt.channels) > 1 && ~strcmpi(opt.plotmode, 'none'), figure; opt.plotmode = 'condensed'; end
+            if length(opt.channels) > 1, figure; opt.plotmode = 'condensed'; end
             if length(locs) == 1 && size(allersp{1},3) > 1
                 % channels should be in 3rd dim; reshape data to put subjects in the 4th dim if number of channels is 1 
                 for index = 1:length(allersp(:))
@@ -352,6 +387,9 @@ if ~isempty(opt.channels)
         end
     end
 else
+    if length(opt.clusters) > 1 && strcmpi(stats.singletrials, 'on')
+        error('Cannot plot several components on the same figure when using single trial statistics');
+    end
     
     if length(opt.clusters) > 1 && ~strcmpi(opt.plotmode, 'none'), figure; opt.plotmode = 'condensed'; end
     nc = ceil(sqrt(length(opt.clusters)));
@@ -375,46 +413,54 @@ else
             comp_names = { STUDY.cluster(opt.clusters(index)).comps(opt.comps) };
             opt.subject = STUDY.datasetinfo(STUDY.cluster(opt.clusters(index)).sets(1,opt.comps)).subject;
         end
-
-        % select specific time and freq
-        % -----------------------------
-        if ~isempty(params.plottf)
-            if length(params.plottf) < 3, 
-                params.plottf(3:4) = params.plottf(2);
-                params.plottf(2) = params.plottf(1);
-            end
-            [tmp fi1] = min(abs(allfreqs-params.plottf(1)));
-            [tmp fi2] = min(abs(allfreqs-params.plottf(2)));
-            [tmp ti1] = min(abs(alltimes-params.plottf(3)));
-            [tmp ti2] = min(abs(alltimes-params.plottf(4)));
-            for index = 1:length(allersp(:))
-                allersp{index} = mean(mean(allersp{index}(fi1:fi2,ti1:ti2,:,:),1),2)'; % transposed because otherwise time/freq are inverted
-                allersp{index} = reshape(allersp{index}, [1 size(allersp{index},3) size(allersp{index},4) ]);
-            end
-        end
         
         % average single trials
         % ---------------------
         if strcmpi(opt.datatype, 'ersp')
-            if strcmpi(stats.singletrials, 'on')
-                if ndims(allersp{1}) == 4, for ind = 1:length(allersp(:)), allersp{ind} = mean(allersp{ind},4); end; end
-                if ndims(allersp{1}) == 3, for ind = 1:length(allersp(:)), allersp{ind} = mean(allersp{ind},3); end; end
-            end
             if  strcmpi(params.subbaseline, 'on')
+                disp('Computing common baseline has changed since EEGLAB 14: averaging baselines is now');
+                disp('performed before log-transformation of the baseline - in a similar way that baseline');
+                disp('is averaged accross trials (log transformation is only performed at the end for display)');
                 % see above for rational for baseline
                 paramsersp.singletrials = stats.singletrials;
                 paramsersp.commonbase   = params.subbaseline;
                 allersp = newtimefbaseln(allersp, alltimes, paramsersp);
             else
+                paramsersp.singletrials = stats.singletrials;
                 allersp = cellfun(@(x)newtimefbaseln(x, alltimes, paramsersp), allersp, 'uniformoutput', false);
             end
-            % transform to log
-            if  isfield(paramsersp, 'freqscale') && strcmpi(paramsersp.freqscale, 'log')
-                allersp = cellfun(@(x)10*log10(x), allersp, 'uniformoutput', false);
+            % transform to log (except single trials)
+            if strcmpi(stats.singletrials, 'off')
+                if ~isfield(paramsersp, 'scale') || strcmpi(paramsersp.scale, 'log')
+                    allersp = cellfun(@(x)10*log10(x), allersp, 'uniformoutput', false);
+                end
             end
         end
 
+        % statistics
+        % ----------
         [pcond pgroup pinter] = std_stat(allersp, stats);
+        if (~isempty(pcond ) && (size( pcond{1},1) == 1 || size( pcond{1},2) == 1)) || ...
+           (~isempty(pgroup) && (size(pgroup{1},1) == 1 || size(pgroup{1},2) == 1)), 
+            pcond = {}; pgroup = {}; pinter = {}; 
+            disp('No statistics possible for single subject STUDY');
+        end % single subject STUDY                                
+        
+        if strcmpi(stats.singletrials, 'on')
+            if strcmpi(opt.datatype, 'ersp')
+                if ndims(allersp{1}) == 4, for ind = 1:length(allersp(:)), allersp{ind} = mean(allersp{ind},4); end; end
+                if ndims(allersp{1}) == 3, for ind = 1:length(allersp(:)), allersp{ind} = mean(allersp{ind},3); end; end
+                if ~isfield(paramsersp, 'scale') || strcmpi(paramsersp.scale, 'log')
+                    allersp = cellfun(@(x)10*log10(x), allersp, 'uniformoutput', false);
+                end
+            elseif strcmpi(opt.datatype, 'itc')
+                if ~isfield(params, 'itctype'), params.itctype = 'phasecoher'; end
+                for iDat = 1:length(allersp(:))
+                    allersp{iDat} = newtimefitc(allersp{iDat}, params.itctype);
+                    allersp{iDat} = abs(allersp{iDat});
+                end
+            end
+        end
 
         % plot specific component
         % -----------------------

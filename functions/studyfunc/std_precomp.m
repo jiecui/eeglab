@@ -102,19 +102,30 @@
 
 % Copyright (C) Arnaud Delorme, SCCN, INC, UCSD, 2006, arno@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [ STUDY, ALLEEG customRes ] = std_precomp(STUDY, ALLEEG, chanlist, varargin)
 
@@ -159,7 +170,7 @@ g = finputcheck(varargin, { 'erp'         'string'  { 'on','off' }     'off';
 if ischar(g), error(g); end
 if ~isempty(g.rmbase), g.erpparams = { g.erpparams{:} 'rmbase' g.rmbase }; end
 if ~isempty(g.customfileext), error('customfileext option has been removed from this function. Let us know if this is something you need.'); end
-if strcmpi(g.bids, 'on'), fileSuffix = [ '_task-' STUDY.task ]; else fileSuffix = ''; end
+if strcmpi(g.bids, 'on'), fileSuffix = [ '_' STUDY.task ]; else fileSuffix = ''; end
     
 % union of all channel structures
 % -------------------------------
@@ -345,20 +356,22 @@ if strcmpi(g.erpim, 'on')
     end
     
     for iSubj = 1:length(uniqueSubjects)
-        inds = strmatch( uniqueSubjects{iSubj}, allSubjects, 'exact');
-        filepath = STUDY.datasetinfo(inds(1)).filepath;
-        trialinfo = std_combtrialinfo(STUDY.datasetinfo, inds);
-        filebase = getfilename(filepath, uniqueSubjects{iSubj}, uniqueSessions{iSess}, fileSuffix, length(uniqueSessions) == 1);
-        
-        addopts = { 'savetrials' g.savetrials 'recompute' g.recompute 'fileout' filebase 'trialinfo' trialinfo tmpparams{:} };
-        if strcmpi(computewhat, 'channels')
-            [tmpchanlist, opts] = getchansandopts(STUDY, ALLEEG, chanlist, inds, g);
-            std_erpimage(ALLEEG(inds), 'channels', tmpchanlist, opts{:}, addopts{:});
-        else
-            if length(inds)>1 && ~isequal(chanlist{inds})
-                error(['ICA decompositions must be identical if' 10 'several datasets are concatenated' 10 'for a given subject' ]);
+        for iSess = 1:length(uniqueSessions)
+            inds = strmatch( uniqueSubjects{iSubj}, allSubjects, 'exact');
+            filepath = STUDY.datasetinfo(inds(1)).filepath;
+            trialinfo = std_combtrialinfo(STUDY.datasetinfo, inds);
+            filebase = getfilename(filepath, uniqueSubjects{iSubj}, uniqueSessions{iSess}, fileSuffix, length(uniqueSessions) == 1);
+
+            addopts = { 'savetrials' g.savetrials 'recompute' g.recompute 'fileout' filebase 'trialinfo' trialinfo tmpparams{:} };
+            if strcmpi(computewhat, 'channels')
+                [tmpchanlist, opts] = getchansandopts(STUDY, ALLEEG, chanlist, inds, g);
+                std_erpimage(ALLEEG(inds), 'channels', tmpchanlist, opts{:}, addopts{:});
+            else
+                if length(inds)>1 && ~isequal(chanlist{inds})
+                    error(['ICA decompositions must be identical if' 10 'several datasets are concatenated' 10 'for a given subject' ]);
+                end
+                std_erpimage(ALLEEG(inds), 'components', chanlist{inds(1)}, addopts{:});
             end
-            std_erpimage(ALLEEG(inds), 'components', chanlist{inds(1)}, addopts{:});
         end
     end
     
@@ -396,20 +409,22 @@ if strcmpi(g.ersp, 'on') || strcmpi(g.itc, 'on')
     end
     
     for iSubj = 1:length(uniqueSubjects)
-        inds = strmatch( uniqueSubjects{iSubj}, allSubjects, 'exact');
-        filepath = STUDY.datasetinfo(inds(1)).filepath;
-        trialinfo = std_combtrialinfo(STUDY.datasetinfo, inds);
-        filebase = getfilename(filepath, uniqueSubjects{iSubj}, uniqueSessions{iSess}, fileSuffix, length(uniqueSessions) == 1);
-        
-        addopts = { 'savetrials' g.savetrials 'recompute' g.recompute 'fileout' filebase 'trialinfo' trialinfo tmpparams{:} };
-        if strcmpi(computewhat, 'channels')
-            [tmpchanlist, opts] = getchansandopts(STUDY, ALLEEG, chanlist, inds, g);
-            std_ersp(ALLEEG(inds), 'channels', tmpchanlist, opts{:}, addopts{:});
-        else
-            if length(inds)>1 && ~isequal(chanlist{inds})
-                error(['ICA decompositions must be identical if' 10 'several datasets are concatenated' 10 'for a given subject' ]);
+        for iSess = 1:length(uniqueSessions)
+            inds = strmatch( uniqueSubjects{iSubj}, allSubjects, 'exact');
+            filepath = STUDY.datasetinfo(inds(1)).filepath;
+            trialinfo = std_combtrialinfo(STUDY.datasetinfo, inds);
+            filebase = getfilename(filepath, uniqueSubjects{iSubj}, uniqueSessions{iSess}, fileSuffix, length(uniqueSessions) == 1);
+
+            addopts = { 'savetrials' g.savetrials 'recompute' g.recompute 'fileout' filebase 'trialinfo' trialinfo tmpparams{:} };
+            if strcmpi(computewhat, 'channels')
+                [tmpchanlist, opts] = getchansandopts(STUDY, ALLEEG, chanlist, inds, g);
+                std_ersp(ALLEEG(inds), 'channels', tmpchanlist, opts{:}, addopts{:});
+            else
+                if length(inds)>1 && ~isequal(chanlist{inds})
+                    error(['ICA decompositions must be identical if' 10 'several datasets are concatenated' 10 'for a given subject' ]);
+                end
+                std_ersp(ALLEEG(inds), 'components', chanlist{inds(1)}, addopts{:});
             end
-            std_ersp(ALLEEG(inds), 'components', chanlist{inds(1)}, addopts{:});
         end
     end
     
