@@ -13,6 +13,7 @@ Installation
 1. Lunch EEGLAB in MATLAT, e.g. >>eeglab
 1. From EEGLAB GUI, select File > Import Data > Using EEGLAB functions and plugins > From UP-MSEL .mef file
 1. Follow the instructions on the screen
+1. A data sample 'sample_mef' folder is provided in the package.
 
 MEF format
 ----------
