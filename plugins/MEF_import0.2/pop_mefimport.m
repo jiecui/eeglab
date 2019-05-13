@@ -72,6 +72,7 @@ if isempty(filename)
     [filepath, filename, start_end, unit] = gui_mefimport;
     % if GUI is cancelled
     if isempty(filepath) && isempty(filename)
+        EEG = [];
         return
     end % if
 end % if
