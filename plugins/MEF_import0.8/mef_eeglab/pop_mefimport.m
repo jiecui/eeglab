@@ -39,7 +39,7 @@ function [EEG, com] = pop_mefimport(EEG, varargin)
 % See also EEGLAB, mefimport.
 
 % Copyright 2019 Richard J. Cui. Created: Tue 05/07/2019 10:33:48.169 PM
-% $Revision: 0.3 $  $Date: Tue 05/21/2019  8:56:23.378 PM $
+% $Revision: 0.4 $  $Date: Fri 05/24/2019 11:36:54.006 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -69,14 +69,14 @@ unit = q.unit;
 % =========================================================================
 if isempty(filename)
     % use GUI to get the necessary information
-    [filepath, filename, start_end, unit, password] = gui_mefimport;
+    [filepath, filename, start_end, unit, password, mef1] = gui_mefimport;
     % if GUI is cancelled
     if isempty(filepath) && isempty(filename)
         EEG = [];
         return
     end % if
 end % if
-EEG = mefimport(EEG, filepath, filename, start_end, unit, password);
+EEG = mefimport(EEG, filepath, filename, start_end, unit, password, mef1);
 EEG = eeg_checkset(EEG); % from eeglab functions
 
 % return the string command

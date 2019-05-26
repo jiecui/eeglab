@@ -78,14 +78,18 @@ fp = fopen(wholename, 'r');
 if fp < 0, return; end % if
 
 fseek(fp, header.discontinuity_data_offset, 'bof');
-a = fread(fp, header.number_of_discontinuity_entries, 'uint8');
+a = fread(fp, header.number_of_discontinuity_entries, 'uint64');
 a = a(:);
 fclose(fp);
 
 % block start-end
-blk_start = a+1; % 1st block indexed as one
-b = [a, header.number_of_index_entries];
-blk_end = b(2:end);
+if a == 0
+    blk_start = 1;
+    blk_end = header.number_of_index_entries;
+else
+    blk_start = a; % 1st block indexed as one
+    blk_end = [a(2:end)-1; header.number_of_index_entries];
+end % if
 seg_cont{:, {'BlockStart', 'BlockEnd'}} = [blk_start, blk_end];
 
 % other info
@@ -95,7 +99,11 @@ end % if
 bid = this.BlockIndexData;
 fs = header.sampling_frequency;
 MPS = 1e6; % microseconds per second
+wh = waitbar(0,'Analyzing signal continuity...');
+fprintf('Analyzing signal continuity...\n')
 for k = 1:num_seg_cont
+    waitbar(k/num_seg_cont)
+    
     blk_start_k = seg_cont.BlockStart(k);
     % sample time start
     seg_cont.SampleTimeStart(k) = bid.SampleTime(blk_start_k);
@@ -115,6 +123,8 @@ for k = 1:num_seg_cont
     % segment length
     seg_cont.SegmentLength(k) = seg_cont.SampleIndexEnd(k)-seg_cont.SampleIndexStart(k)+1;
 end % for
+fprintf('Done\n')
+close(wh)
 
 this.Continuity = seg_cont;
 end

@@ -25,6 +25,8 @@ function OUTEEG = mefimport(INEEG, filepath, filename, varargin)
 %                     .subject      : subject password (default - '')
 %                     .session
 %                     .data
+%   mef1            - [obj] (optional) MultiscaleElectrophysiologyFile object of
+%                     channel 1 (default- [])
 % 
 % Outputs:
 %   OUTEEG           - [struct] EEGLab dataset structure. See Note for
@@ -42,7 +44,7 @@ function OUTEEG = mefimport(INEEG, filepath, filename, varargin)
 % See also eeglab, eeg_checkset, pop_mefimport. 
 
 % Copyright 2019 Richard J. Cui. Created: Wed 05/08/2019  3:19:29.986 PM
-% $Revision: 0.5 $  $Date: Wed 05/22/2019  4:05:54.127 PM $
+% $Revision: 0.7 $  $Date: Sat 05/25/2019  8:18:39.137 AM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -59,17 +61,20 @@ filename = q.filename;
 start_end = q.start_end;
 unit = q.unit;
 pw = q.password;
+mef1 = q.mef1;
 
 if ischar(filename)
     fname = {filename};
 else
     fname = filename;
 end % if
-mef = MultiscaleElectrophysiologyFile(filepath, fname{1},...
-    'SubjectPassword', pw.subject);
-mef.setSubjectPassword(pw.subject);
-mef.setSessionPassword(pw.session);
-mef.setDataPassword(pw.data);
+if isempty(mef1)
+    mef1 = MultiscaleElectrophysiologyFile(filepath, fname{1},...
+        'SubjectPassword', pw.subject);
+end % if
+mef1.setSubjectPassword(pw.subject);
+mef1.setSessionPassword(pw.session);
+mef1.setDataPassword(pw.data);
 
 % set EEG structure
 % -----------------
@@ -124,11 +129,11 @@ end % if
 % =========================================================================
 % setname
 % -------
-OUTEEG.setname = sprintf('Data from %s', mef.Header.institution);
+OUTEEG.setname = sprintf('Data from %s', mef1.Header.institution);
 
 % subject
 % -------
-OUTEEG.subject = mef.Header.subject_id;
+OUTEEG.subject = mef1.Header.subject_id;
 
 % trials
 % ------
@@ -141,32 +146,32 @@ OUTEEG.nbchan = numel(fname);
 
 % srate
 % -----
-OUTEEG.srate = mef.Header.sampling_frequency; % in Hz
+OUTEEG.srate = mef1.Header.sampling_frequency; % in Hz
 
 % xmin, xmax (in second)
 % ----------------------
 % continuous data, according to the segment to be imported
 switch lower(unit)
     case 'index'
-        OUTEEG.xmin = mef.SampleIndex2Time(start_end(1), 'second');
-        OUTEEG.xmax = mef.SampleIndex2Time(start_end(2), 'second');
+        OUTEEG.xmin = mef1.SampleIndex2Time(start_end(1), 'second');
+        OUTEEG.xmax = mef1.SampleIndex2Time(start_end(2), 'second');
     case 'second'
         OUTEEG.xmin = start_end(1);
         OUTEEG.xmax = start_end(2);
     otherwise
-        se_index = mef.SampleTime2Index(start_end, unit);
-        OUTEEG.xmin = mef.SampleIndex2Time(se_index(1), 'second');
-        OUTEEG.xmax = mef.SampleIndex2Time(se_index(2), 'second');        
+        se_index = mef1.SampleTime2Index(start_end, unit);
+        OUTEEG.xmin = mef1.SampleIndex2Time(se_index(1), 'second');
+        OUTEEG.xmax = mef1.SampleIndex2Time(se_index(2), 'second');        
 end % switch
 
 % times (in second)
 % -----
 if isempty(start_end)
-    [~, t] = mef.importSignal;
+    [~, t] = mef1.importSignal;
 else
-    [~, t] = mef.importSignal(start_end, unit); % t in sample index
+    [~, t] = mef1.importSignal(start_end, unit); % t in sample index
 end % if
-OUTEEG.times = (t-1)/mef.Header.sampling_frequency; 
+OUTEEG.times = (t-1)/mef1.Header.sampling_frequency; 
 
 % pnts
 % ----
@@ -175,7 +180,7 @@ OUTEEG.pnts = numel(t);
 % comments
 % --------
 OUTEEG.comments = sprintf('Acauisition system - %s\ncompression algorithm - %s',...
-    mef.Header.acquisition_system, mef.Header.compression_algorithm);
+    mef1.Header.acquisition_system, mef1.Header.compression_algorithm);
 
 % saved
 % -----
@@ -193,6 +198,7 @@ for k = 1:OUTEEG.nbchan
         'SubjectPassword', pw.subject);
     mef_k.setSessionPassword(pw.session);
     mef_k.setDataPassword(pw.data);
+    mef_k.setContinuity(mef1.Continuity); % assume all channels are the same
     
     if isempty(start_end)
         data(k, :) = mef_k.importSignal;
@@ -217,6 +223,7 @@ defaultSE = [];
 defaultUnit = 'index';
 expectedUnit = {'index', 'uutc', 'second', 'minute', 'hour', 'day'};
 default_pw = struct('subject', '', 'session', '', 'data', '');
+defaultMef1 = [];
 
 % parse rules
 p = inputParser;
@@ -228,15 +235,11 @@ p.addOptional('start_end', defaultSE,...
 p.addOptional('unit', defaultUnit,...
     @(x) any(validatestring(x, expectedUnit)));
 p.addOptional('password', default_pw, @isstruct);
+p.addOptional('mef1', defaultMef1, @isobject);
 
 % parse and return the results
 p.parse(varargin{:});
-q.INEEG = p.Results.INEEG;
-q.filepath = p.Results.filepath;
-q.filename = p.Results.filename;
-q.start_end = p.Results.start_end;
-q.unit = p.Results.unit;
-q.password = p.Results.password;
+q = p.Results;
 
 end % function
 

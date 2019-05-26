@@ -141,6 +141,7 @@ classdef MultiscaleElectrophysiologyFile < handle
         this = setSubjectPassword(this, password) % set MEF subject password
         this = setSessionPassword(this, password) % set MEF session password
         this = setDataPassword(this, password) % set MEF data password
+        this = setContinuity(this, cont_table) % set Continuity table
     end % methods
 end % classdef
 

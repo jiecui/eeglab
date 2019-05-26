@@ -23,7 +23,7 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 0.4 $  $Date: Tue 05/21/2019 10:40:22.466 PM $
+% $Revision: 0.6 $  $Date: Sun 05/26/2019  4:06:07.549 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -32,7 +32,7 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 
 % version info
 % ------------
-vers='mefimport0.5';
+vers='MEF_import0.8';
 
 % parse inputs
 % ------------
@@ -40,6 +40,11 @@ q = parseInputs(fig, try_strings, catch_strings);
 fig = q.fig;
 try_strings = q.try_strings;
 catch_strings = q.catch_strings;
+
+% add paths
+% ---------
+fpath = fileparts(mfilename('fullpath')); % get the path of this plugin
+addpath(genpath(fpath)) % add all subdirectories into matlab paths
 
 % Setup menus of importing MEF files into EEGLAB
 % ----------------------------------------------
@@ -51,7 +56,7 @@ mef_imp = [try_strings.no_check, 'EEG = pop_mefimport(EEG);',...
     catch_strings.new_and_hist];
 
 % create menus in EEGLab
-uimenu(importmenu, 'label', 'From UP-MSEL .mef file', 'callback',...
+uimenu(importmenu, 'label', 'From Mayo Clinic .mef file', 'callback',...
     mef_imp, 'separator', 'on');
 
 end % function

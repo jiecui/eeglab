@@ -19,11 +19,12 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, varargin)
 %                     to physically collected data
 % 
 % Note:
+%   An error less than one sample time may occure.
 % 
-% See also .
+% See also SampleTime2Index.
 
 % Copyright 2019 Richard J. Cui. Created: Mon 05/06/2019  9:29:08.940 PM
-% $Revision: 0.2 $  $Date: Thu 05/09/2019 11:15:44.427 PM $
+% $Revision: 0.3 $  $Date: Fri 05/24/2019  4:07:08.928 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -65,7 +66,7 @@ for k = 1:num_seg
         index_diff = sorted_si(ind_k)-start_k;
         time_diff = index_diff*MPS/fs;
         sorted_st_k = st_k+time_diff;
-        sorted_sample_time(ind_k) = sorted_st_k;
+        sorted_sample_time(ind_k) = round(sorted_st_k); % uUTC integer
         sorted_sample_yn(ind_k) = true;
     end % if
 end % for
@@ -93,7 +94,7 @@ for k = 1:num_seg
             time_diff = (index_diff-1)*MPS/fs;
             sorted_st_k = st_k+time_diff+1;
         end % if
-        sorted_sample_time(ind_k) = sorted_st_k;
+        sorted_sample_time(ind_k) = round(sorted_st_k); % uUTC integer
         sorted_sample_yn(ind_k) = false;
     end % if
 end % for
