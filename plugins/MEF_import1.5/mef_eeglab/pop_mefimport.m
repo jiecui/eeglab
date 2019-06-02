@@ -39,7 +39,7 @@ function [EEG, com] = pop_mefimport(EEG, varargin)
 % See also EEGLAB, mefimport.
 
 % Copyright 2019 Richard J. Cui. Created: Tue 05/07/2019 10:33:48.169 PM
-% $Revision: 0.4 $  $Date: Fri 05/24/2019 11:36:54.006 PM $
+% $Revision: 0.6 $  $Date:Tue 05/28/2019  9:56:47.412 PM$
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -67,6 +67,8 @@ unit = q.unit;
 % =========================================================================
 % main
 % =========================================================================
+% import signal
+% --------------
 if isempty(filename)
     % use GUI to get the necessary information
     [filepath, filename, start_end, unit, password, mef1] = gui_mefimport;
@@ -79,6 +81,21 @@ end % if
 EEG = mefimport(EEG, filepath, filename, start_end, unit, password, mef1);
 EEG = eeg_checkset(EEG); % from eeglab functions
 
+% process discontinuity events
+% ----------------------------
+if height(mef1.Continuity) > 1
+    discont_event = findDiscontEvent(mef1, start_end, unit);
+    EEG.event = discont_event;
+    EEG.urevent = rmfield(discont_event, 'urevent');
+end % if
+
+% keep some data in eeglab space
+% ------------------------------
+mef_data.mef1 = mef1;
+mef_data.start_end = start_end;
+mef_data.unit = unit;
+EEG.etc.mef_data = mef_data;
+
 % return the string command
 % -------------------------
 com = sprintf('%s(EEG, [filename, [pathname, [start_end, [unit, [password]]]]] )', mfilename);
@@ -88,6 +105,38 @@ end % funciton
 % =========================================================================
 % subroutines
 % =========================================================================
+function dc_event = findDiscontEvent(mef, start_end, unit)
+
+% converte start_end to index if not
+if strcmpi(unit, 'index')
+    se_ind = start_end;
+else
+    se_ind = mef.SampleTime2Index(start_end, unit);
+end % if
+
+% find the continuity blocks
+seg_cont = mef.Continuity;
+cont_ind = se_ind(1) <= seg_cont.SampleIndexEnd...
+    & se_ind(2) >= seg_cont.SampleIndexStart;
+dc_start = seg_cont.SampleIndexStart(cont_ind); % discont start in index
+
+% find the relative index of start of discontinuity
+rel_dc = dc_start - se_ind(1);
+rel_dc(rel_dc < 0) = []; % get rid of index < 0
+
+% construct the event of EEGLAB
+num_event = numel(rel_dc);
+t = table('Size', [num_event, 3], 'VariableTypes', {'string', 'double', 'double'},...
+    'VariableNames', {'type', 'latency', 'urevent'});
+t.type = repmat('Discont', num_event, 1);
+t.latency = rel_dc(:);
+t.urevent = (1:num_event)';
+
+% output
+dc_event = table2struct(t);
+
+end % function
+
 function q = parseInputs(varargin)
 
 % defaults

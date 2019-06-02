@@ -26,7 +26,7 @@ classdef MultiscaleElectrophysiologyFile < handle
     % See also this.readHeader.
     
     % Copyright 2019 Richard J. Cui. Created: Mon 04/29/2019  8:11:02.485 PM
-    % $Revision: 0.2 $  $Date: Mon 05/20/2019  2:32:00.446 PM $
+    % $Revision: 0. $  $Date: Mon 05/27/2019  3:28:33.118 PM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -36,11 +36,12 @@ classdef MultiscaleElectrophysiologyFile < handle
     % =====================================================================
     % properties
     % =====================================================================
-    % signals
-    % -------
+    % MAF file info
+    % -------------
     properties
-        x               % imported signal
-        t               % time index of the signal
+        MafFilePath     % [str] filepath of MAF file
+        MafFileName     % [str] filename of MAF file including ext (.maf)
+        MAF             % [struct] MAF data structure
     end % properties
     
     % MEF file info
@@ -142,6 +143,7 @@ classdef MultiscaleElectrophysiologyFile < handle
         this = setSessionPassword(this, password) % set MEF session password
         this = setDataPassword(this, password) % set MEF data password
         this = setContinuity(this, cont_table) % set Continuity table
+        event_table = getMAFEvent(this, maf_file) % get event table from MAF
     end % methods
 end % classdef
 

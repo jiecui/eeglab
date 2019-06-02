@@ -23,7 +23,7 @@ function [x, t] = importSignal(this, varargin)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Mon 04/29/2019 10:33:58.517 PM
-% $Revision: 0.3 $  $Date: Mon 05/20/2019  3:47:58.071 PM $
+% $Revision: 0.4 $  $Date: Sun 06/02/2019  1:32:16.688 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -43,9 +43,13 @@ switch lower(st_unit)
         se_index = this.SampleTime2Index(start_end, st_unit);
 end % switch
 % check
-if se_index(1) < 1, se_index(1) = 1; end % if
+if se_index(1) < 1
+    se_index(1) = 1; 
+    fprintf('Warning: Reqested data samples before the recording are discarded.\n')
+end % if
 if se_index(2) > this.Header.number_of_samples
     se_index(2) = this.Header.number_of_samples; 
+    fprintf('Warning: Reqested data samples after the recording are discarded.\n')
 end % if
 wholename = fullfile(this.FilePath, this.FileName);
 
@@ -56,21 +60,15 @@ pw = this.SessionPassword;
 x = decompress_mef(wholename, se_index(1), se_index(2), pw);
 x = double(x(:)).'; % change to row vector
 % find the indices corresponding to physically collected data
-t = physicalIndex(this, se_index(1), se_index(2));
+if nargout == 2
+    t = se_index(1):se_index(2);
+end % if
 
 end
 
 % =========================================================================
 % subroutines
 % =========================================================================
-function t = physicalIndex(this, start_index, stop_index)
-
-t = start_index:stop_index;
-[~, s_yn] = this.SampleIndex2Time(t);
-t(~s_yn) = []; % get rid of those points that are not physically sampled
-
-end % funciton
-
 function q = parseInputs(this, varargin)
 
 % defaults

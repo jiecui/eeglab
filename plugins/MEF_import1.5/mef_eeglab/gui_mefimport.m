@@ -32,7 +32,7 @@ function varargout = gui_mefimport(varargin)
 % See also pop_mefimport, gui_mefimport.
 
 % Copyright 2019 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 0.6 $  $Date: Fri 05/24/2019 11:15:13.689 PM $
+% $Revision: 0.8 $  $Date: Tue 05/28/2019  7:03:50.863 PM$
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -223,40 +223,50 @@ SelectedCells = eventdata.Indices;
 function pushbutton_ok_Callback(hObject, eventdata, handles)
 % get the data file information
 
-% filepath
-handles.filepath = get(handles.edit_path, 'String');
-
-% filename
-Table = get(handles.uitable_channel, 'Data');
-list_mef = handles.list_mef;
-fname = {list_mef.name};
-choice = cell2mat(Table(:, end));
-handles.filename = fname(choice);
-
-% unit
-unit_list = get(handles.popupmenu_unit, 'String');
-choice = get(handles.popupmenu_unit, 'Value');
-handles.unit = unit_list{choice};
-
-% start_end
-mef1 = handles.mef1;
-unit = handles.unit;
-if strcmpi(unit, 'index') % get recoridng start time in unit
-    record_start = 0;
+if isfield(handles, 'edit_path') && isfield(handles, 'list_mef')...
+        && ~isempty(handles.edit_path) && ~isempty(handles.list_mef)
+    % filepath
+    handles.filepath = get(handles.edit_path, 'String');
+    
+    % filename
+    Table = get(handles.uitable_channel, 'Data');
+    list_mef = handles.list_mef;
+    fname = {list_mef.name};
+    choice = cell2mat(Table(:, end));
+    handles.filename = fname(choice);
+    
+    % unit
+    unit_list = get(handles.popupmenu_unit, 'String');
+    choice = get(handles.popupmenu_unit, 'Value');
+    handles.unit = unit_list{choice};
+    
+    % start_end
+    mef1 = handles.mef1;
+    unit = handles.unit;
+    if strcmpi(unit, 'index') % get recoridng start time in unit
+        record_start = 0;
+    else
+        record_start = mef1.SampleIndex2Time(1, unit);
+    end % if
+    
+    start_pt = str2double(get(handles.edit_start, 'String'))+record_start;
+    end_pt = str2double(get(handles.edit_end, 'String'))+record_start;
+    handles.start_end = [start_pt, end_pt];
+    
+    guidata(hObject, handles);
+    
+    % close the GUI
+    uiresume();
+    guimef= findobj('Tag', 'gui_mefimport');
+    close(guimef)
 else
-    record_start = mef1.SampleIndex2Time(1, unit);
+    supergui( 'geomhoriz', { 1 1 1 }, 'uilist', { ...
+        { 'style', 'text', 'string', 'No valid MEF file!',...
+                'HorizontalAlignment', 'center' },...
+        { }, ...
+        { 'style', 'pushbutton' , 'string', 'OK', 'callback',...
+                'close(gcbf);' } } );
 end % if
-
-start_pt = str2double(get(handles.edit_start, 'String'))+record_start;
-end_pt = str2double(get(handles.edit_end, 'String'))+record_start;
-handles.start_end = [start_pt, end_pt];
-
-guidata(hObject, handles);
-
-% close the GUI
-uiresume();
-guimef= findobj('Tag', 'gui_mefimport');
-close(guimef)
 
 
 function pushbutton_cancel_Callback(hObject, eventdata, handles)
@@ -265,6 +275,7 @@ handles.filepath = '';
 handles.filename = '';
 handles.start_end = [];
 handles.unit = '';
+handles.mef1 = [];
 guidata(hObject, handles)
 
 uiresume();

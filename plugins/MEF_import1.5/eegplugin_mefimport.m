@@ -23,7 +23,7 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 0.6 $  $Date: Sun 05/26/2019  4:06:07.549 PM $
+% $Revision: 0.9 $  $Date: Sun 06/02/2019  1:55:35.201 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -32,7 +32,7 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 
 % version info
 % ------------
-vers='MEF_import0.8';
+vers='MEF_import1.05';
 
 % parse inputs
 % ------------
@@ -58,6 +58,19 @@ mef_imp = [try_strings.no_check, 'EEG = pop_mefimport(EEG);',...
 % create menus in EEGLab
 uimenu(importmenu, 'label', 'From Mayo Clinic .mef file', 'callback',...
     mef_imp, 'separator', 'on');
+
+% Setup menus of importing MAF files into EEGLAB
+% ----------------------------------------------
+% find import event menu
+impeventmenu = findobj(fig, 'tag', 'import event');
+
+% menu callback
+maf_imp = [try_strings.no_check, 'EEG = pop_mafimport(EEG);',...
+    catch_strings.new_and_hist];
+
+% create menu in EEGLAB
+uimenu(impeventmenu, 'label', 'From Mayo Clinic .maf file', 'callback',...
+    maf_imp, 'separator', 'on');
 
 end % function
  
