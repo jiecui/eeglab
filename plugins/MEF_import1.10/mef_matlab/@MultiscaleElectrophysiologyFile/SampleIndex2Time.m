@@ -24,7 +24,7 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, varargin)
 % See also SampleTime2Index.
 
 % Copyright 2019 Richard J. Cui. Created: Mon 05/06/2019  9:29:08.940 PM
-% $Revision: 0.8 $  $Date: Sun 06/02/2019  3:14:58.390 PM $
+% $Revision: 0.9 $  $Date: Mon 06/03/2019  4:52:48.362 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -64,17 +64,19 @@ sel_cont_start_end = cont_start_end(sel_cont_ind, :);
 
 % within discontinous segment
 % ----------------------------
-a = cont_start_end.';
-b = cat(1, -inf, a(:), inf);
-discont_start_end = reshape(b, 2, numel(b)/2).';
-not_discont_index = discont_start_end(:, 2)-discont_start_end(:, 1) == 1;
-discont_start_end(not_discont_index, :) = [];
-discont_index = ~not_discont_index;
-sel_cont_ind = [true; discont_index(2:end-2); true];
-sel_cont = cont(sel_cont_ind, :);
-[sorted_sample_time, sorted_sample_yn] = inDiscontLoopDiscont(...
-    sorted_sample_time, sorted_sample_yn, discont_start_end, sel_cont,...
-    sorted_si);
+if this.Header.number_of_discontinuity_entries > 1 % if discont in recording
+    a = cont_start_end.';
+    b = cat(1, -inf, a(:), inf);
+    discont_start_end = reshape(b, 2, numel(b)/2).';
+    not_discont_index = discont_start_end(:, 2)-discont_start_end(:, 1) == 1;
+    discont_start_end(not_discont_index, :) = [];
+    discont_index = ~not_discont_index;
+    sel_cont_ind = [true; discont_index(2:end-2); true];
+    sel_cont = cont(sel_cont_ind, :);
+    [sorted_sample_time, sorted_sample_yn] = inDiscontLoopDiscont(...
+        sorted_sample_time, sorted_sample_yn, discont_start_end, sel_cont,...
+        sorted_si);
+end % if
 
 % output
 % ------

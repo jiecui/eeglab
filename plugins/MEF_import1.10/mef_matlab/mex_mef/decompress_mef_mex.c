@@ -20,7 +20,7 @@
 
 /* 
  modified by Richard J. Cui.
- $Revision: 0.2 $  $Date: Sun 05/26/2019  9:49:16.550 AM $
+ $Revision: 0.3 $  $Date: Mon 06/03/2019  2:11:30.568 PM $
 
  1026 Rocky Creek Dr NE
  Rochester, MN 55906, USA
@@ -54,7 +54,7 @@ void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long lo
 	MEF_HEADER_INFO		hdr_info;
 	RED_BLOCK_HDR_INFO	block_hdr;
     
-
+    printf("Checking...");
 	/* get cpu endianness */
 	cpu_endianness = 0;
 	c = (char *) &cpu_endianness;
@@ -148,8 +148,9 @@ void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long lo
 		printf("[decomp_mef] could not allocate enough memory for file \"%s\" => exiting\n", f_name);
 		return;
 	}
-	
+    
 	/* read in compressed data */
+    printf("Loading...");
 	fseeko(fp, (off_t) start_block_file_offset, SEEK_SET);
 	n_read = fread(comp_data, sizeof(char), (size_t) comp_data_len, fp);
 	if (n_read != comp_data_len) {
@@ -159,7 +160,7 @@ void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long lo
 	fclose(fp);
 		
 	/* decompress data */
-	
+	printf("Decompressing...");
 	// decode first block to temp array
 	cdp = comp_data;  
 	diff_buffer = (si1 *) malloc(hdr_info.maximum_block_length * 4);
@@ -201,6 +202,8 @@ void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long lo
 	kept_samples = (unsigned int) (end_idx - end_block_idx + 1);
 	memcpy((void *) dcdp, (void *) temp_data_buf, kept_samples * sizeof(int));
 	
+    printf("Done!\n");
+    
 	free(comp_data); comp_data=NULL;
 	free(diff_buffer); diff_buffer=NULL;
 	free(temp_data_buf); temp_data_buf=NULL;
