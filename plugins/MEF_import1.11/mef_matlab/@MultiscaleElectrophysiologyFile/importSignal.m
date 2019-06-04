@@ -23,7 +23,7 @@ function [x, t] = importSignal(this, varargin)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Mon 04/29/2019 10:33:58.517 PM
-% $Revision: 0.4 $  $Date: Sun 06/02/2019  1:32:16.688 PM $
+% $Revision: 0.6 $  $Date: Tue 06/04/2019  4:54:54.417 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -45,24 +45,34 @@ end % switch
 % check
 if se_index(1) < 1
     se_index(1) = 1; 
-    fprintf('Warning: Reqested data samples before the recording are discarded.\n')
+    fprintf('WARNING: Reqested data samples before the recording are discarded.\n')
 end % if
 if se_index(2) > this.Header.number_of_samples
     se_index(2) = this.Header.number_of_samples; 
-    fprintf('Warning: Reqested data samples after the recording are discarded.\n')
+    fprintf('WARNING: Reqested data samples after the recording are discarded.\n')
 end % if
 wholename = fullfile(this.FilePath, this.FileName);
+
+% verbose
+num_samples = diff(start_end)+1;
+if num_samples > 2^20
+    verbo = true; 
+else
+    verbo = false;
+end % if
 
 % =========================================================================
 % load the data
 % =========================================================================
 pw = this.SessionPassword;
+if verbo, fprintf('-->Loading...'), end % if
 x = decompress_mef(wholename, se_index(1), se_index(2), pw);
 x = double(x(:)).'; % change to row vector
 % find the indices corresponding to physically collected data
 if nargout == 2
     t = se_index(1):se_index(2);
 end % if
+if verbo, fprintf('Done!\n'), end % if
 
 end
 

@@ -34,6 +34,8 @@ function OUTEEG = mefimport(INEEG, filepath, filename, varargin)
 %                     structure.
 % 
 % Note:
+%   Current version assumes continuous signal.
+% 
 %   All MEF files in one directory are assumed to be data files for
 %   different channels during recording.
 % 
@@ -44,7 +46,7 @@ function OUTEEG = mefimport(INEEG, filepath, filename, varargin)
 % See also eeglab, eeg_checkset, pop_mefimport. 
 
 % Copyright 2019 Richard J. Cui. Created: Wed 05/08/2019  3:19:29.986 PM
-% $Revision: 0.7 $  $Date: Sat 05/25/2019  8:18:39.137 AM $
+% $Revision: 0.9 $  $Date: Tue 06/04/2019  4:26:55.371 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -151,31 +153,36 @@ OUTEEG.srate = mef1.Header.sampling_frequency; % in Hz
 % xmin, xmax (in second)
 % ----------------------
 % continuous data, according to the segment to be imported
-switch lower(unit)
-    case 'index'
-        OUTEEG.xmin = mef1.SampleIndex2Time(start_end(1), 'second');
-        OUTEEG.xmax = mef1.SampleIndex2Time(start_end(2), 'second');
-    case 'second'
-        OUTEEG.xmin = start_end(1);
-        OUTEEG.xmax = start_end(2);
-    otherwise
-        se_index = mef1.SampleTime2Index(start_end, unit);
-        OUTEEG.xmin = mef1.SampleIndex2Time(se_index(1), 'second');
-        OUTEEG.xmax = mef1.SampleIndex2Time(se_index(2), 'second');        
-end % switch
+if isempty(start_end)
+    num_samples = mef1.Header.number_of_samples;
+    OUTEEG.xmin = mef1.SampleIndex2Time(1, 'second');
+    OUTEEG.xmax = mef1.SampleIndex2Time(num_samples, 'second');
+else
+    switch lower(unit)
+        case 'index'
+            num_samples = diff(start_end)+1;
+            OUTEEG.xmin = mef1.SampleIndex2Time(start_end(1), 'second');
+            OUTEEG.xmax = mef1.SampleIndex2Time(start_end(2), 'second');
+        case 'second'
+            OUTEEG.xmin = start_end(1);
+            OUTEEG.xmax = start_end(2);
+            se_index = mef1.SampleTime2Index(start_end, unit);
+            num_samples = diff(se_index)+1;
+        otherwise
+            se_index = mef1.SampleTime2Index(start_end, unit);
+            num_samples = diff(se_index)+1;
+            OUTEEG.xmin = mef1.SampleIndex2Time(se_index(1), 'second');
+            OUTEEG.xmax = mef1.SampleIndex2Time(se_index(2), 'second');
+    end % switch
+end % if
 
 % times (in second)
-% -----
-if isempty(start_end)
-    [~, t] = mef1.importSignal;
-else
-    [~, t] = mef1.importSignal(start_end, unit); % t in sample index
-end % if
-OUTEEG.times = (t-1)/mef1.Header.sampling_frequency; 
+% ------------------------------------------------------------
+OUTEEG.times = linspace(OUTEEG.xmin, OUTEEG.xmax, num_samples); 
 
 % pnts
 % ----
-OUTEEG.pnts = numel(t);
+OUTEEG.pnts = num_samples;
 
 % comments
 % --------
@@ -184,7 +191,7 @@ OUTEEG.comments = sprintf('Acauisition system - %s\ncompression algorithm - %s',
 
 % saved
 % -----
-OUTEEG.saved = 'no'; % nost saved yet
+OUTEEG.saved = 'no'; % not saved yet
 
 % data and chanlocs
 % -----------------
