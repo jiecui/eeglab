@@ -354,7 +354,7 @@ if isempty(g.chanind)
     g.chanind = 1:EEG.nbchan;
 end
 if iscell(g.chanind)
-    datatype = {data.chanlocs.type};
+    datatype = {EEG.chanlocs.type};
     tmpChanInd = [];
     for iChan = 1:length(datatype)
         if ~isempty(datatype{iChan}) && ~isempty(strmatch(datatype{iChan}, g.chanind))
@@ -372,6 +372,7 @@ for i = 1:length(g.options)
     if ischar(g.options{i})
         if strcmpi(g.options{i}, 'pca')
             pca_opt = 1;
+            pca_ind = i;
         end
     end
 end
@@ -453,7 +454,18 @@ switch lower(g.icatype)
             return;
         end
      case 'picard' 
+         if pca_opt
+             if g.options{pca_ind+1} < 0
+                 [tmpdata,eigvec] = runpca(tmpdata, size(tmpdata,1)+g.options{pca_ind+1});
+             else
+                 [tmpdata,eigvec] = runpca(tmpdata, g.options{pca_ind+1});
+             end
+             g.options(pca_ind:pca_ind+1) = [];
+         end
         [tmp, EEG.icaweights] = picard( tmpdata, 'verbose', true, g.options{:});
+         if pca_opt
+            EEG.icaweights = EEG.icaweights*pinv(eigvec);
+         end
      case 'pearson_ica' 
         if isempty(g.options)
             disp('Warning: EEGLAB default for pearson ICA is 1000 iterations and epsilon=0.0005');
