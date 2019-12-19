@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+=======
 [submodule "plugins/firfilt"]
 	path = plugins/firfilt
 	url = https://github.com/widmann/firfilt.git
@@ -10,3 +12,4 @@
 [submodule "plugins/ICLabel"]
 	path = plugins/ICLabel
 	url = https://github.com/sccn/ICLabel
+>>>>>>> upstream/develop

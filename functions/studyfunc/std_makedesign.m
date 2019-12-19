@@ -130,7 +130,7 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function [STUDY com] = std_makedesign(STUDY, ALLEEG, designind, varargin)
+function [STUDY, com] = std_makedesign(STUDY, ALLEEG, designind, varargin)
 
 if nargin < 2
     help std_makedesign;
@@ -165,7 +165,10 @@ if length(defdes.variable) == 0, defdes.variable(1).label = 'continuous'; defdes
 if length(defdes.variable) == 1, defdes.variable(2).label = 'continuous'; defdes.variable(2).vartype = 'categorical'; defdes.variable(2).value = {}; end
 if length(defdes.variable) == 2, defdes.variable(3).label = 'continuous'; defdes.variable(3).vartype = 'categorical'; defdes.variable(3).value = {}; end
 if length(defdes.variable) == 3, defdes.variable(4).label = 'continuous'; defdes.variable(4).vartype = 'categorical'; defdes.variable(4).value = {}; end
-for iVar = 1:4, if isempty(defdes.variable(iVar).vartype), defdes.variable(iVar).vartype = 'continuous'; end; end
+for iVar = 1:4
+    if isempty(defdes.variable(iVar).vartype), defdes.variable(iVar).vartype = 'continuous'; end
+    if isempty(defdes.variable(iVar).label)  , defdes.variable(iVar).label = ''; end
+end
 opt = finputcheck(varargin,  {'variable1'     'string'    []     defdes.variable(1).label;
                               'variable2'     'string'    []     defdes.variable(2).label;
                               'variable3'     'string'    []     defdes.variable(3).label;
@@ -250,7 +253,7 @@ end
 
 % check inputs
 % ------------
-[indvars indvarvals tmp paired] = std_getindvar(STUDY);
+[indvars, indvarvals, ~, paired] = std_getindvar(STUDY);
 if isfield(STUDY.datasetinfo, 'trialinfo')
      alltrialinfo = { STUDY.datasetinfo.trialinfo };
      dattrialselect = cellfun(@(x)([1:length(x)]), alltrialinfo, 'uniformoutput', false);
@@ -279,7 +282,7 @@ datselect = [1:length(STUDY.datasetinfo)];
 if ~isempty(opt.datselect)
     myfprintf(opt.verbose, 'Data preselection for STUDY design\n');
     for ind = 1:2:length(opt.datselect)
-        [ dattmp dattrialstmp ] = std_selectdataset( STUDY, ALLEEG, opt.datselect{ind}, opt.datselect{ind+1});
+        [ dattmp, dattrialstmp ] = std_selectdataset( STUDY, ALLEEG, opt.datselect{ind}, opt.datselect{ind+1});
         datselect      = intersect_bc(datselect, dattmp);
         dattrialselect = intersectcell(dattrialselect, dattrialstmp);
     end
@@ -320,9 +323,9 @@ if isempty(des.cases.value) des.cases.value = STUDY.subject; end
 fieldorder = { 'name' 'filepath' 'variable' 'cases' 'include' };
 if ~isfield(des, 'variable'), des.variable = []; end
 des        = orderfields(des, fieldorder);
-try, 
+try
     STUDY.design = orderfields(STUDY.design, fieldorder);
-catch,
+catch
     STUDY.design = [];
 end
 
@@ -341,6 +344,17 @@ if designind <= length(STUDY.design)
     end
 end
 
+% reorder variable putting single value var at the end
+% this allows selecting some specific conditions and still processing the
+% data in EEGLAB standard stat functions
+if length(STUDY.design(designind).variable) > 2
+    if all(cellfun(@(x)isequal(x, 'categorical'), { STUDY.design(designind).variable(3).vartype })) % only categorical
+        varLen = cellfun(@(x)length(x), {STUDY.design(designind).variable.value});
+        indLen1 = find(varLen == 1);
+        STUDY.design(designind).variable = [ STUDY.design(designind).variable(setdiff(1:length(varLen), indLen1)) STUDY.design(designind).variable(indLen1) ];
+    end
+end
+
 % select the new design in the STUDY output
 % -----------------------------------------
 STUDY.currentdesign     = designind;
@@ -355,7 +369,7 @@ com = sprintf('STUDY = std_makedesign(STUDY, ALLEEG, %d, %s);', designind, varar
 
 % return intersection of cell arrays
 % ----------------------------------
-function res = intersectcell(a, b, c);
+function res = intersectcell(a, b, c)
 if nargin > 2
     res = intersectcell(a, intersectcell(b, c));
 else
@@ -366,7 +380,7 @@ end
 
 % perform multi strmatch
 % ----------------------
-function res = strmatchmult(a, b);
+function res = strmatchmult(a, b)
     res = [];
     for index = 1:length(a)
         res = [ res strmatch(a{index}, b, 'exact')' ];
@@ -374,7 +388,7 @@ function res = strmatchmult(a, b);
 
 % remove blanks
 % -------------
-function res = rmblk(a);
+function res = rmblk(a)
     if iscell(a), a = cell2str(a); end
     if ~ischar(a), a = num2str(a); end
     res = a;
@@ -391,10 +405,10 @@ function strval = cell2str(vals);
         strval = [ strval ' - ' vals{ind} ];
     end
 
-function tmpfile = checkfilelength(tmpfile);
-    if length(tmpfile) > 120,
+function tmpfile = checkfilelength(tmpfile)
+    if length(tmpfile) > 120
         tmpfile = tmpfile(1:120);
     end
 
-function myfprintf(verbose, varargin);
+function myfprintf(verbose, varargin)
     if strcmpi(verbose, 'on'), fprintf(varargin{:}); end

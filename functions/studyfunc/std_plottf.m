@@ -108,13 +108,15 @@ opt = finputcheck( varargin, { 'titles'         'cell'   []              cellfun
                                'unitx'          'string' []              'ms'; % just for titles
                                'unitcolor'      'string' {}              'dB';
                                'chanlocs'       'struct' []              struct('labels', {});
-                               'freqscale'      'string' { 'log','linear','auto' }  'auto';
+                               'freqscale'      'string' { 'log','linear','auto' }  'auto'; % note that paramsersp in std_erspplot contains the information as well
                                'effect'         'string' { 'main','marginal' }   'marginal';
+                               'averagemode'    'string' { 'rms','ave' }   'rms';
                                'events'         'cell'   []              {};
                                'groupstats'     'cell'   []              {};
                                'condstats'      'cell'   []              {};
                                'interstats'     'cell'   []              {};                               
                                'maskdata'       'string' { 'on','off' }   'off';
+                               'plottopo'       'string' { 'on','off' }   'off';
                                'datatype'       'string' { 'ersp','itc' 'erpim' }    'ersp';
                                'plotmode'       'string' { 'normal','condensed' }  'normal' }, 'std_plottf');
 if ischar(opt), error(opt); end
@@ -144,9 +146,9 @@ end
 % test log frequencies
 % --------------------
 if length(freqs) > 2 && strcmpi(opt.freqscale, 'auto')
-    midfreq = (freqs(3)+freqs(1))/2;
-    if midfreq*.9999 < freqs(2) && midfreq*1.0001 > freqs(2), opt.freqscale = 'linear';
-    else                                                     opt.freqscale = 'log';
+    midind  = floor(length(freqs)/2);
+    if abs(freqs(midind)/freqs(end) - 1/2) < 0.1, opt.freqscale = 'linear';
+    else                                          opt.freqscale = 'log';
     end
 end
 
@@ -237,13 +239,21 @@ if strcmpi(opt.transpose, 'off'), set(gcf, 'position', [ pos(1) pos(2) pos(4) po
 else                              set(gcf, 'position', pos);
 end
 
-tmpc = [inf -inf];
+% options
+% -------
+options = { 'limits' [NaN NaN NaN NaN opt.caxis] 'verbose' 'off' 'mode' opt.averagemode options{:} };
+
 for c = 1:nc
     for g = 1:ng
         %hdl(c,g) = mysubplot(nc+addr, ng+addc, g + (c-1)*(ng+addc), opt.transpose);
         hdl(c,g) = mysubplot(nc+addr, ng+addc, c, g, opt.transpose);
         if ~isempty(data{c,g})
-            tmpplot = mean(data{c,g},3);
+            if strcmpi(opt.plottopo, 'off')
+                tmpplot = mean(data{c,g},3);
+            else
+                tmpplot = data{c,g};
+                tmpplot = permute(tmpplot, [3 1 2 4]);
+            end
             if ~isreal(tmpplot(1)), tmpplot = abs(tmpplot); end % comes second for processing single trials
             if statmask, 
                 if ~isempty(opt.condstats), tmpplot(find(pcondplot{g}(:) == 0)) = 0;
@@ -254,16 +264,11 @@ for c = 1:nc
                  tmpevents = mean(opt.events{c,g},2);
             else tmpevents = [];
             end
-            tftopo( tmpplot, timevals, freqs, 'events', tmpevents, 'title', opt.titles{c,g}, options{:}); 
-                
-            if isempty(opt.caxis) && ~isempty(tmpc)
-                warning off;
-                tmpc = [ min(min(tmpplot(:)), tmpc(1)) max(max(tmpplot(:)), tmpc(2)) ];
-                warning on;
-            else 
-                if ~isempty(opt.caxis)
-                    caxis(opt.caxis);
-                end
+            if strcmpi(opt.plottopo, 'on') && length(opt.chanlocs) > 1
+                metaplottopo(tmpplot, 'chanlocs', opt.chanlocs, 'plotfunc', 'tftopo', 'squeeze', 'on', ...
+                    'plotargs', { timevals, freqs, 'events', tmpevents, options{:} }, 'title', opt.titles{c,g});
+            else
+                tftopo( tmpplot, timevals, freqs, 'events', tmpevents, 'title', opt.titles{c,g}, options{:});
             end
 
             if c > 1
@@ -278,8 +283,13 @@ for c = 1:nc
                 if strcmpi(opt.effect, 'main') && nc>1, centerc = nc/2-0.5; else centerc = 0; end
                 hdl(c,g+1) = mysubplot(nc+addr, ng+addc, c+centerc, ng + 1, opt.transpose);
                 pgroupplot{c}(pgroupplot{c}<0) = 0;
-                tftopo( pgroupplot{c}, timevals, freqs, 'title', opt.titles{c,g+1}, options{:});
-                caxis([-maxplot maxplot]);
+                tmpOptions = { 'limits' [nan nan nan nan -maxplot maxplot] options{3:end} };
+                if strcmpi(opt.plottopo, 'on') && length(opt.chanlocs) > 1
+                    metaplottopo(permute(pgroupplot{c}, [3 1 2]), 'chanlocs', opt.chanlocs, 'plotfunc', 'tftopo', 'squeeze', 'on', ...
+                        'plotargs', { timevals, freqs, tmpOptions{:} }, 'title', opt.titles{c,g+1});
+                else
+                    tftopo( pgroupplot{c}, timevals, freqs, 'title', opt.titles{c,g+1}, tmpOptions{:});
+                end
             end
         end
     end
@@ -293,25 +303,12 @@ for g = 1:ng
             if strcmpi(opt.effect, 'main') && ng>1, centerg = ng/2-0.5; else centerg = 0; end
             hdl(nc+1,g) = mysubplot(nc+addr, ng+addc, nc+addr, g+centerg, opt.transpose);
             pcondplot{g}(pcondplot{g}<0) = 0;
-            tftopo( pcondplot{g}, timevals, freqs, 'title', opt.titles{nc+1,g}, options{:});
-            caxis([-maxplot maxplot]);
-        end
-    end
-end
-
-% color scale
-% -----------
-if isempty(opt.caxis)
-    if opt.unitcolor(1) == '%'
-        tmpc = [1-(max(abs(tmpc))-1) max(abs(tmpc))];
-    else
-        tmpc = [-max(abs(tmpc)) max(abs(tmpc))];
-    end
-    for c = 1:nc
-        for g = 1:ng
-            axes(hdl(c,g));
-            if ~isempty(tmpc)
-                caxis(tmpc);
+            tmpOptions = { 'limits' [nan nan nan nan -maxplot maxplot] options{3:end} };
+            if strcmpi(opt.plottopo, 'on') && length(opt.chanlocs) > 1
+                metaplottopo(permute(pcondplot{g}, [3 1 2]), 'chanlocs', opt.chanlocs, 'plotfunc', 'tftopo', 'squeeze', 'on', ...
+                    'plotargs', { timevals, freqs, tmpOptions{:} }, 'title', opt.titles{nc+1,g});
+            else
+                tftopo( pcondplot{g}, timevals, freqs, 'title', opt.titles{nc+1,g}, options{:});
             end
         end
     end
@@ -369,7 +366,7 @@ function cbar_standard(datatype, ng, unitcolor);
     set(gca, 'unit', 'normalized');
     if strcmpi(datatype, 'itc')
          cbar(tmp, 0, tmpc, 10); ylim([0.5 1]);
-         title('ITC','fontsize',10,'fontweight','normal');
+         title('ITC','fontsize',10,'fontweight','normal','interpreter','none');
     elseif strcmpi(datatype, 'erpim')
         cbar(tmp, 0, tmpc, 5);
     else

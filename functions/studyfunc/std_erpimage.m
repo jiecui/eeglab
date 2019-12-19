@@ -34,7 +34,7 @@
 %                  statistics (the 'on' options does not allow statistics).
 %   'smoothing'  - Smoothing parameter (number of trials). {Default: 10}
 %                  erpimage() equivalent: 'avewidth'
-%   'nlines'     - Number of lines for ERPimage. erpaimge() equivalent is 
+%   'nlines'     - Number of lines for ERPimage. erpimage() equivalent is 
 %                  'decimate'. Note that this parameter must be larger than
 %                  the minimum number of trials in each design cell 
 %                  {Default: 10}
@@ -234,6 +234,10 @@ else
         else com = sprintf('squeeze(eeg_getdatact(%s));', vararg2str( { filenames 'component', opt.indices(index), 'trialindices', opt.trialindices } ));
         end
         allerpimage = setfield(allerpimage, [ prefix int2str(opt.indices(index)) ], com);
+    end
+    if ~isempty(opt.channels)
+        com = sprintf('squeeze(eeg_getdatact(%s, ''interp'', chanlocsforinterp));', vararg2str( { filenames 'rmcomps', opt.rmcomps, 'trialindices', opt.trialindices } ));
+        allerpimage = setfield(allerpimage, [ prefix 'all' ], com);
     end
     allerpimage = setfield(allerpimage, 'chanlocsforinterp', opt.interp);
     if ~isempty(opt.sorttype)

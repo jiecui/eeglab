@@ -176,7 +176,7 @@ if ~isempty(params.topofreq) && strcmpi(opt.datatype, 'spec'),  params.topotime 
 if ~isempty(params.freqrange), params.timerange = params.freqrange; end
 datatypestr = upper(opt.datatype);
 if strcmpi(datatypestr, 'spec'), datatypestr = 'Spectrum'; end
-
+    
 % =======================================================================
 % below this line, all the code should be non-specific to ERP or spectrum
 % =======================================================================
@@ -248,15 +248,24 @@ if ~isempty(opt.channels)
     chaninds = 1:length(opt.channels);
 
     if strcmpi(opt.datatype, 'erp')
-        [STUDY, erpdata, alltimes] = std_readdata(STUDY, ALLEEG, 'channels', opt.channels(chaninds), 'timerange', params.timerange, ...
+        [STUDY, erpdata, alltimes, ~, ~, fileparams] = std_readdata(STUDY, ALLEEG, 'channels', opt.channels(chaninds), 'timerange', params.timerange, ...
                 'subject', opt.subject, 'singletrials', stats.singletrials, 'design', opt.design, 'datatype', [dtype dsubtype]);
     else
-        [STUDY, erpdata, alltimes] = std_readdata(STUDY, ALLEEG, 'channels', opt.channels(chaninds), 'freqrange', params.freqrange, ...
+        [STUDY, erpdata, alltimes, ~, ~, fileparams] = std_readdata(STUDY, ALLEEG, 'channels', opt.channels(chaninds), 'freqrange', params.freqrange, ...
                 'subject', opt.subject, 'singletrials', stats.singletrials, 'design', opt.design, 'datatype', [dtype dsubtype], 'rmsubjmean', params.subtractsubjectmean);
     end
-    if strcmpi(params.averagechan, 'on') && length(chaninds) > 1
+    if isfield(fileparams, 'specmode') && ~strcmpi(fileparams.specmode, 'fft'), opt.unitx = [ opt.unitx 'psd' ]; end
+    if ~strcmpi(params.averagechan, 'off') && length(chaninds) > 1
         for index = 1:length(erpdata(:))
-            erpdata{index} = squeeze(mean(erpdata{index},2));
+            if strcmpi(params.averagechan, 'on')
+                erpdata{index} = squeeze(mean(erpdata{index},2));
+            else
+                erpdata{index} = squeeze(sqrt(mean(erpdata{index}.^2,2)));
+                opt.unitx = 'rmsms';
+            end
+        end
+        if strcmpi(params.averagechan, 'rms')
+            opt.unitx = [ 'rms' opt.unitx ];
         end
     end
     if isempty(erpdata), return; end
@@ -309,14 +318,18 @@ if ~isempty(opt.channels)
     % get titles (not included in std_erspplot because it is not possible
     % to merge channels for that function
     % -----------------------------------
-    locs = eeg_mergelocs(ALLEEG.chanlocs);
-    locs = locs(std_chaninds(STUDY, opt.channels(chaninds)));
-    if strcmpi(params.averagechan, 'on') && length(chaninds) > 1
-        chanlabels = { locs.labels };
-        chanlabels(2,:) = {','};
-        chanlabels(2,end) = {''};
-        locs(1).labels = [ chanlabels{:} ];
-        locs(2:end) = [];
+    locsOri = eeg_mergelocs(ALLEEG.chanlocs);
+    locs = locsOri(std_chaninds(STUDY, opt.channels(chaninds)));
+    if ~strcmpi(params.averagechan, 'off') && length(chaninds) > 1
+        if length(chaninds) ~= length(locsOri)
+            chanlabels = { locs.labels };
+            chanlabels(2,:) = {','};
+            chanlabels(2,end) = {''};
+            locs(1).labels = [ chanlabels{:} ];
+        else
+            locs(1).labels = 'All channels';
+        end
+        locs(2:end) = [];    
     end
     [alltitles, alllegends ] = std_figtitle('threshold', alpha, 'mcorrect', mcorrect, 'condstat', stats.condstats, 'cond2stat', stats.groupstats, ...
                              'statistics', method, 'condnames', allconditions, 'plotsubjects', opt.plotsubjects, 'cond2names', allgroups, 'chanlabels', { locs.labels }, ...
@@ -358,17 +371,13 @@ else
 
         if length(opt.clusters) > 1, subplot(nr,nc,index); end
         if strcmpi(opt.datatype, 'erp')
-            [STUDY, erpdata, alltimes] = std_readdata(STUDY, ALLEEG, 'clusters', opt.clusters(index), 'timerange', params.timerange, ...
+            [STUDY, erpdata, alltimes, ~, ~, fileparams] = std_readdata(STUDY, ALLEEG, 'clusters', opt.clusters(index), 'timerange', params.timerange, ...
                     'component', opt.comps, 'singletrials', stats.singletrials, 'design', opt.design, 'datatype', [dtype dsubtype]);
         else
-            [STUDY, erpdata, alltimes] = std_readdata(STUDY, ALLEEG, 'clusters', opt.clusters(index), 'freqrange', params.freqrange, ...
+            [STUDY, erpdata, alltimes, ~, ~, fileparams] = std_readdata(STUDY, ALLEEG, 'clusters', opt.clusters(index), 'freqrange', params.freqrange, ...
                     'component', opt.comps, 'singletrials', stats.singletrials, 'design', opt.design, 'datatype', [dtype dsubtype], 'rmsubjmean', params.subtractsubjectmean);
-%             [STUDY erpdata alltimes] = std_readerp(STUDY, ALLEEG, 'clusters', opt.clusters(index), 'timerange', params.timerange, ...
-%                         'component', opt.comps, 'singletrials', stats.singletrials, 'design', opt.design, 'datatype', [dtype dsubtype]);
-%         else
-%             [STUDY erpdata alltimes] = std_readerp(STUDY, ALLEEG, 'clusters', opt.clusters(index), 'freqrange', params.freqrange, ...
-%                         'rmsubjmean', params.subtractsubjectmean, 'component', opt.comps, 'singletrials', stats.singletrials, 'design', opt.design, 'datatype', [dtype dsubtype]);
         end
+        if isfield(fileparams, 'specmode') && ~strcmpi(fileparams.specmode, 'fft'), opt.unitx = [ opt.unitx 'psd' ]; end
         if isempty(erpdata), return; end
 
         % plot specific component
@@ -376,7 +385,6 @@ else
         if ~isempty(opt.comps)
             comp_names = { STUDY.cluster(opt.clusters(index)).comps(opt.comps) };
             opt.subject = STUDY.datasetinfo(STUDY.cluster(opt.clusters(index)).sets(1,opt.comps)).subject;
-            for iDat = 1:length(erpdata(:)), erpdata{iDat} = erpdata{iDat}(:,opt.comps); end
         end
         
         % remove NaNs and generate labels

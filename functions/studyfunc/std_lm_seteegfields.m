@@ -53,7 +53,7 @@ function EEG = std_lm_seteegfields(STUDY,EEG,index,varargin)
 %  -----------------
 try
     options = varargin;
-    if ~isempty( varargin ),
+    if ~isempty( varargin )
         for i = 1:2:numel(options)
             opt.(options{i}) = options{i+1};
         end
@@ -67,7 +67,7 @@ try, opt.datatype;         catch, opt.datatype      = 'channels';  end
 
 % Getting measureflags
 % --------------------
-measures   = {'erp','spec','ersp','itc'};
+measures   = {'erp','spec','ersp','timef','itc'};
 
 % Getting prefix for channels/components
 if strncmpi(opt.datatype,'chan',4)
@@ -113,6 +113,7 @@ if strcmpi(opt.datatype,'channels')
             EEG.etc.datafiles.daterp = [name '.daterp'];
         end
     end
+    
     % DATSPEC
     if strcmp(opt.spec,'on')
         data = load('-mat',[name '.datspec']);
@@ -127,16 +128,16 @@ if strcmpi(opt.datatype,'channels')
         end
     end
     % DATERSP    
-    if strcmp(opt.ersp,'on')
-        disp('reading single trials ersp, be patient ..')
-        data = load('-mat',[name '.dattimef']);
+    if strcmp(opt.timef,'on')
+        data = load('-mat',[name '.dattimef'],'times','freqs');
         EEG.etc.timeersp = data.times;
         EEG.etc.freqersp = data.freqs;
         if strcmp(opt.format,'matrix')
+            disp('reading single trials ersp, be patient ...')
+            data = load('-mat',[name '.dattimef']);
             data = limo_struct2mat(data);
             save([name '_datersp.mat'],'data'); clear data
             EEG.etc.datafiles.datersp = [name '_datersp.mat'];
-            delete([name '.dattimef']);
         else
             EEG.etc.datafiles.datersp = [name '.dattimef'];
         end
@@ -186,7 +187,7 @@ if strcmpi(opt.datatype,'components')
         end
     end
     % ICAERSP    
-    if strcmp(opt.ersp,'on')
+    if strcmp(opt.timef,'on')
         data = load('-mat',[name '.icatimef']);
         EEG.etc.timeersp = data.times;
         EEG.etc.freqersp = data.freqs;

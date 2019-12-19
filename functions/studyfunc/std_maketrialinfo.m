@@ -41,7 +41,7 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function STUDY = std_maketrialinfo(STUDY, ALLEEG);
+function STUDY = std_maketrialinfo(STUDY, ALLEEG)
 
 %% test if .epoch field exist in ALLEEG structure
 epochfield = cellfun(@isempty, { ALLEEG.epoch });
@@ -49,6 +49,11 @@ if any(epochfield)
     fprintf('Warning: some datasets are continuous and trial information cannot be created\n');
     return;
 end
+
+for iEEG = 1:length(ALLEEG)
+    % fill in empty field values and fill in with values in the same epoch
+    ALLEEG(iEEG) = eeg_uniformepochinfo(ALLEEG(iEEG));
+end    
 
 %% check if conversion of event is necessary
 ff = {};

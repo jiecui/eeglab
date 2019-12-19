@@ -111,7 +111,7 @@ end
 opt = finputcheck( varargin, { 'ylim'          'real'   []              [];
                                'filter'        'real'   []              [];
                                'threshold'     'real'   []              NaN;
-                               'unitx'         'string' []              'ms';
+                               'unitx'         'string' { 'ms','hz','rmsms','rmshz','hzpsd','rmshzpsd' }   'ms';
                                'chanlocs'      'struct' []              struct('labels', {});
                                'plotsubjects'  'string' { 'on','off' }  'off';
                                'condnames'     'cell'   []              {}; % just for legends
@@ -301,8 +301,12 @@ end
 
 % labels
 % ------
-if strcmpi(opt.unitx, 'ms'), xlab = 'Time (ms)';      ylab = 'Potential (\muV)';
-else                         xlab = 'Frequency (Hz)'; ylab = 'Log Power Spectral Density 10*log_{10}(\muV^{2}/Hz)'; % ylab = 'Power (10*log_{10}(\muV^{2}))'; 
+if strcmpi(opt.unitx, 'ms'),        xlab = 'Time (ms)';      ylab = 'Potential (\muV)';
+elseif strcmpi(opt.unitx, 'rmsms'), xlab = 'Time (ms)';      ylab = 'Potential (RMS \muV)';
+elseif strcmpi(opt.unitx, 'hz'),    xlab = 'Frequency (Hz)'; ylab = 'Log Power 10*log_{10}(\muV^{2})'; % ylab = 'Power (10*log_{10}(\muV^{2}))'; 
+elseif strcmpi(opt.unitx, 'rmshz'), xlab = 'Frequency (Hz)'; ylab = 'Log Power 10*log_{10}(RMS \muV^{2})'; % ylab = 'Power (10*log_{10}(\muV^{2}))'; 
+elseif strcmpi(opt.unitx, 'hzpsd'),    xlab = 'Frequency (Hz)'; ylab = 'Log Power Spectral Density 10*log_{10}(\muV^{2}/Hz)'; % ylab = 'Power (10*log_{10}(\muV^{2}))'; 
+elseif strcmpi(opt.unitx, 'rmshzpsd'), xlab = 'Frequency (Hz)'; ylab = 'Log Power Spectral Density 10*log_{10}(RMS \muV^{2}/Hz)'; % ylab = 'Power (10*log_{10}(\muV^{2}))'; 
 end
 if ~isnan(opt.threshold), statopt = {  'xlabel' xlab };
 else                      statopt = { 'logpval' 'on' 'xlabel' xlab 'ylabel' '-log10(p)' 'ylim' [0 maxplot] };
@@ -328,7 +332,14 @@ else
     opt.subplot = 'noplot';
 end
 
-tmplim = [Inf -Inf];
+if isempty(opt.ylim)
+    if strcmpi(opt.plotsubjects, 'off')
+        opt.ylim = [min(cellfun(@(x)min(min(mean(x,3))), data(:))) max(cellfun(@(x)max(max(mean(x,3))), data(:)))];
+    else
+        opt.ylim = [min(cellfun(@(x)min(x(:)), data(:))) max(cellfun(@(x)max(x(:)), data(:)))];
+    end
+end
+
 colcount = 1; % only when plotting all conditions on the same figure
 tmpcol = col;
 for c = 1:ncplot
@@ -414,6 +425,7 @@ for c = 1:ncplot
             % plotting options
             % ----------------
             plotopt = { allx };
+            
             % -------------------------------------------------------------
             % tmpdata is of size "points x channels x subject x conditions"
             % or                 "points x   1   x components x conditions"
@@ -448,7 +460,7 @@ for c = 1:ncplot
             
             if strcmpi(opt.plottopo, 'on') && length(opt.chanlocs) > 1
                 metaplottopo(tmpdata, 'chanlocs', opt.chanlocs, 'plotfunc', 'plotcurve', ...
-                    'plotargs', { plotopt{:} }, 'datapos', [2 3], 'title', opt.titles{c,g});
+                    'plotargs', { plotopt{:} }, 'axcopycom', 'on', 'datapos', [2 3], 'title', opt.titles{c,g});
             elseif iscell(tmpdata)
                 if ~all(isnan(tmpdata{1}))
                     plotcurve( allx, tmpdata{1}, 'colors', tmpcol, 'maskarray', tmpdata{2}, plotopt{3:end}, 'title', opt.titles{c,g});
@@ -476,16 +488,6 @@ for c = 1:ncplot
                         disp('Some conditions have more subjects than others, cannot plot standard error');
                     end
                 end
-            end
-        end
-        
-        if strcmpi(opt.plottopo, 'off'), % only non-topographic
-            xlim([allx(1) allx(end)]); hold on;
-            if isempty(opt.ylim)
-                tmp = ylim;
-                tmplim = [ min(tmplim(1), tmp(1)) max(tmplim(2), tmp(2)) ];
-            else 
-                ylim(opt.ylim);
             end
         end
 
@@ -570,16 +572,6 @@ if ~isempty(opt.groupstats) && ~isempty(opt.condstats) && ng > 1 && nc > 1
     else
         text(0,0.6, [ 'Plot main effect ' 10 'to see interaction' 10 '("Stat" button option)']);
         axis off;
-    end
-end  
-
-% axis limit
-% ----------
-for c = 1:ncplot
-    for g = 1:ngplot
-        if isempty(opt.ylim) && strcmpi(opt.plottopo, 'off')
-            set(hdl(c,g), 'ylim', tmplim);
-        end
     end
 end
 

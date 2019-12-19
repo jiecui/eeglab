@@ -1,6 +1,6 @@
-% Plugin support function to remove plugin
+% plugin_search() - support function for plugin_menu
 
-% Copyright (C) 2012- Arnaud Delorme
+% Copyright (C) 2019 Arnaud Delorme
 %
 % This file is part of EEGLAB, see http://www.eeglab.org
 % for the documentation and details.
@@ -27,21 +27,45 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function plugin_remove(foldername)
+function plugin_search(fig)
 
-    % get plugin path
-    % ---------------
-    fullpluginfolder = fullfile(fileparts(which('eeglab.m')), 'plugins', foldername);
-    if ~exist(fullpluginfolder)
-        error([ 'Could not find folder ' foldername ' in plugins folder' ]);
-    end
+tmpobj = get(fig, 'userdata');
+allPlugins = tmpobj.allplugins;
 
-    disp([ 'Removing plugin folder ' foldername ]);
-    try
-        rmpath(fullpluginfolder);
-        warning off;
-        rmdir(fullpluginfolder, 's');
-        warning on;
-    catch
-        eeglab_error;
+uistyle      = get(findobj(fig, 'tag', 'search'), 'style');
+if strcmpi(uistyle, 'pushbutton')
+    set(findobj(fig, 'tag', 'search'), 'style', 'edit', 'string', '');
+    return;
+end
+
+searchString = lower(get(findobj(fig, 'tag', 'search'), 'string'));
+if isempty(searchString), return; end
+searchString = textscan(searchString, '%s');
+searchString = searchString{1};
+
+% reset filters
+set(findobj(fig, 'tag', 'filter1'), 'value', 1);
+set(findobj(fig, 'tag', 'filter2'), 'value', 1);
+
+% search
+if isempty(searchString)
+    selectedPlugins = allPlugins;
+else
+    selectedPluginsIndex = [];
+    for iSearch = 1:length(searchString)
+        res = strfind( { allPlugins.strsearch }, searchString{iSearch});
+        if isempty(selectedPluginsIndex)
+            selectedPluginsIndex = find(~cellfun(@isempty, res));
+        else
+            selectedPluginsIndex = intersect(selectedPluginsIndex, find(~cellfun(@isempty, res)));
+        end
     end
+    selectedPlugins = allPlugins(selectedPluginsIndex);
+end
+
+% update GUI
+set(findobj(fig, 'tag', 'pluginlist'), 'string', { selectedPlugins.text }, 'value', []);
+tmpobj.selection = [];
+tmpobj.selectedplugins = selectedPlugins;
+
+set(fig, 'userdata', tmpobj);
