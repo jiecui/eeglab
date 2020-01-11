@@ -1,11 +1,12 @@
 function OUTEEG = mefimport(INEEG, filepath, filename, varargin)
-% MEFIMPORT Import MEF data into EEG structure
+% MEFIMPORT Import MEF 2.1 data into EEG structure
 %
 % Usage:
 %   OUTEEG = mefimport(INEEG, filepath, filename)
-%   OUTEEG = mefimport(INEEG, filepath, filename, start_end)
-%   OUTEEG = mefimport(INEEG, filepath, filename, start_end, unit)
-%   OUTEEG = mefimport(INEEG, filepath, filename, start_end, unit, password)
+%   OUTEEG = mefimport(____, start_end)
+%   OUTEEG = mefimport(____, start_end, unit)
+%   OUTEEG = mefimport(____, start_end, unit, password)
+%   OUTEEG = mefimport(____, start_end, unit, password, mef1)
 %
 % Input(s):
 %   INEEG           - [struct] EEGLab dataset structure. See Note for
@@ -25,8 +26,8 @@ function OUTEEG = mefimport(INEEG, filepath, filename, varargin)
 %                     .subject      : subject password (default - '')
 %                     .session
 %                     .data
-%   mef1            - [obj] (optional) MultiscaleElectrophysiologyFile object of
-%                     channel 1 (default- [])
+%   mef1            - [obj] (optional) MultiscaleElectrophysiologyFile_2p1
+%                     object of channel 1 (default- [])
 % 
 % Outputs:
 %   OUTEEG           - [struct] EEGLab dataset structure. See Note for
@@ -46,7 +47,7 @@ function OUTEEG = mefimport(INEEG, filepath, filename, varargin)
 % See also eeglab, eeg_checkset, pop_mefimport. 
 
 % Copyright 2019 Richard J. Cui. Created: Wed 05/08/2019  3:19:29.986 PM
-% $Revision: 0.9 $  $Date: Tue 06/04/2019  4:26:55.371 PM $
+% $Revision: 1.1 $  $Date: Sun 12/29/2019  4:22:18.705 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -71,7 +72,7 @@ else
     fname = filename;
 end % if
 if isempty(mef1)
-    mef1 = MultiscaleElectrophysiologyFile(filepath, fname{1},...
+    mef1 = MultiscaleElectrophysiologyFile_2p1(filepath, fname{1},...
         'SubjectPassword', pw.subject);
 end % if
 mef1.setSubjectPassword(pw.subject);
@@ -201,7 +202,7 @@ for k = 1:OUTEEG.nbchan
     ch_k = fname{k};
     fprintf('Importing MEF data %s [%d/%d]...\n', ch_k, k, OUTEEG.nbchan)
     
-    mef_k = MultiscaleElectrophysiologyFile(filepath, ch_k,...
+    mef_k = MultiscaleElectrophysiologyFile_2p1(filepath, ch_k,...
         'SubjectPassword', pw.subject);
     mef_k.setSessionPassword(pw.session);
     mef_k.setDataPassword(pw.data);

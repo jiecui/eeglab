@@ -1,5 +1,5 @@
 function seg_cont = analyzeContinuity(this, varargin)
-% ANALYZECONTINUITY Analyze continuity of sampling in the data file
+% MULTISCALEELECTROPHYSIOLOGYFILE_2P1.ANALYZECONTINUITY Analyze continuity of sampling in MEF 2.1 data file
 % 
 % Syntax:
 %   seg_cont = analyzeContinuity(this)
@@ -7,7 +7,7 @@ function seg_cont = analyzeContinuity(this, varargin)
 %   seg_cont = analyzeContinuity(this, wholename, password)
 % 
 % Imput(s):
-%   this            - [obj] MultiscaleElectrophysiologyFile object
+%   this            - [obj] MultiscaleElectrophysiologyFile_2p1 object
 %   wholename       - [str] filepath + filename of MEF file
 %   password        - [str] subject password of the data
 % 
@@ -35,7 +35,7 @@ function seg_cont = analyzeContinuity(this, varargin)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Sat 05/04/2019 10:35:40.540 PM
-% $Revision: 0.2 $  $Date: Mon 05/20/2019  3:30:28.116 PM $
+% $Revision: 0.3 $  $Date: Sun 12/29/2019  4:43:20.432 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA

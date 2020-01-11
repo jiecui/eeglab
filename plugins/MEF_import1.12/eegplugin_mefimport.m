@@ -23,7 +23,7 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 1.1 $  $Date: Tue 06/04/2019  3:48:51.831 PM $
+% $Revision: 1.3 $  $Date: Wed 12/25/2019 10:53:08.314 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -32,7 +32,7 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 
 % version info
 % ------------
-vers='MEF_import1.11';
+vers='MEF_import1.12';
 
 % parse inputs
 % ------------
@@ -49,15 +49,17 @@ addpath(genpath(fpath)) % add all subdirectories into matlab paths
 % Setup menus of importing MEF files into EEGLAB
 % ----------------------------------------------
 % find import data menu
-importmenu = findobj(fig, 'tag', 'import data');
+menu_import_mef = findobj(fig, 'tag', 'import data');
 
 % menu callback
-mef_imp = [try_strings.no_check, 'EEG = pop_mefimport(EEG);',...
+mef_imp_2p1 = [try_strings.no_check, 'EEG = pop_mefimport_2p1(EEG);',...
     catch_strings.new_and_hist];
 
 % create menus in EEGLab
-uimenu(importmenu, 'label', 'From Mayo Clinic .mef file', 'callback',...
-    mef_imp, 'separator', 'on');
+menu_from_mayo = uimenu(menu_import_mef, 'label', 'From Mayo Clinic .mef file',...
+    'separator', 'on');
+uimenu(menu_from_mayo, 'label', 'MEF 2.1', 'callback', mef_imp_2p1);
+uimenu(menu_from_mayo, 'label', 'MEF 3.0');
 
 % Setup menus of importing MAF files into EEGLAB
 % ----------------------------------------------

@@ -1,5 +1,5 @@
 function [x, t] = importSignal(this, varargin)
-% IMPORTMEF Import MEF signal into MATLAB
+% MULTISCALEELECTROPHYSIOLOGYFILE_2P1.IMPORTMEF Import MEF 2.1 data into MATLAB
 % 
 % Syntax:
 %   [x, t] = importSignal(this)
@@ -7,7 +7,7 @@ function [x, t] = importSignal(this, varargin)
 %   [x, t] = importSignal(this, start_end, st_unit)
 % 
 % Imput(s):
-%   this            - [obj] MultiscaleElectrophysiologyFile object
+%   this            - [obj] MultiscaleElectrophysiologyFile_2p1 object
 %   start_end       - [1 x 2 array] [start time/index, end time/index] of 
 %                     the signal to be extracted fromt he file (default:
 %                     the entire signal)
@@ -23,7 +23,7 @@ function [x, t] = importSignal(this, varargin)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Mon 04/29/2019 10:33:58.517 PM
-% $Revision: 0.6 $  $Date: Tue 06/04/2019  4:54:54.417 PM $
+% $Revision: 0.7 $  $Date: Sun 12/29/2019  4:43:20.432 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA

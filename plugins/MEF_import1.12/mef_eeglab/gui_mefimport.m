@@ -1,5 +1,5 @@
 function varargout = gui_mefimport(varargin)
-% GUI_MEFIMPORT Graphic UI for importing MEF datafile
+% GUI_MEFIMPORT Graphic UI for importing MEF 2.1 datafile
 % 
 % Syntax:
 %   [filepath, filename, start_end, unit, password, mef1] = gui_mefimport()
@@ -21,7 +21,7 @@ function varargout = gui_mefimport(varargin)
 %                     .subject      : subject password
 %                     .session
 %                     .data
-%   mef1            - [obj] MultiscaleElectrophysiologyFile object of
+%   mef1            - [obj] MultiscaleElectrophysiologyFile_2p1 object of
 %                     channel 1
 % 
 % Note:
@@ -32,7 +32,7 @@ function varargout = gui_mefimport(varargin)
 % See also pop_mefimport, gui_mefimport.
 
 % Copyright 2019 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 0.8 $  $Date: Tue 05/28/2019  7:03:50.863 PM$
+% $Revision: 0.9 $  $Date: Sun 12/29/2019  4:22:18.705 PM$
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -143,7 +143,7 @@ end % if
 subj_pw = handles.subject_pw;
 sess_pw = handles.session_pw;
 data_pw = handles.data_pw;
-mef1 = MultiscaleElectrophysiologyFile(list_mef(1).folder, list_mef(1).name,...
+mef1 = MultiscaleElectrophysiologyFile_2p1(list_mef(1).folder, list_mef(1).name,...
     'SubjectPassword', subj_pw);
 if mef1.Header.subject_encryption_used && isempty(subj_pw)
     fprintf('Warning: Subject password is required, but may not be provided\n')
@@ -178,7 +178,7 @@ rownames = cell(num_mef, 1);
 for k = 1:num_mef
     fp_k = list_mef(k).folder;
     fn_k = list_mef(k).name;
-    mef_k = MultiscaleElectrophysiologyFile(fp_k, fn_k, 'SubjectPassword', subj_pw);
+    mef_k = MultiscaleElectrophysiologyFile_2p1(fp_k, fn_k, 'SubjectPassword', subj_pw);
     Table{k, 1} = mef_k.Header.channel_name;
     Table{k, 2} = mef_k.Header.sampling_frequency;
     Table{k, 3} = mef_k.Header.number_of_samples;

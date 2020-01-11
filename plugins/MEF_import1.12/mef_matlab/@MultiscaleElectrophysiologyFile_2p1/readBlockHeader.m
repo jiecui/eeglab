@@ -1,11 +1,11 @@
 function blk_header = readBlockHeader(this, BlockIndex)
-% READBLOCKHEADER Read header of the specified data block
+% MULTISCALEELECTROPHYSIOLOGYFILE_2P1.READBLOCKHEADER Read header of the specified data block
 % 
 % Syntax:
 %   blk_header = readBlockHeader(this, BlockIndex)
 % 
 % Imput(s):
-%   this            - [obj] MultiscaleElectrophysiologyFile object
+%   this            - [obj] MultiscaleElectrophysiologyFile_2p1 object
 %   BlockIndex      - [1 x N array] N block indices (1st block indexed as
 %                     one)
 % 
@@ -45,7 +45,7 @@ function blk_header = readBlockHeader(this, BlockIndex)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Fri 05/03/2019  6:56:26.566 PM
-% $Revision: 0.1 $  $Date: Fri 05/03/2019  6:56:26.566 PM $
+% $Revision: 0.2 $  $Date: Sun 12/29/2019  4:43:20.432 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA

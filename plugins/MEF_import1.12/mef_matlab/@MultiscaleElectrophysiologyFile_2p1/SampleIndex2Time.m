@@ -1,12 +1,12 @@
 function [sample_time, sample_yn] = SampleIndex2Time(this, varargin)
-% SampleIndex2Time Convert sample index to sample time
+% MULTISCALEELECTROPHYSIOLOGYFILE_2P1.SAMPLEINDEX2TIME Convert sample index to sample time
 % 
 % Syntax
 %   [sample_time, sample_yn] = SampleIndex2Time(this, sample_index)
 %   [sample_time, sample_yn] = SampleIndex2Time(__, st_unit)
 % 
 % Input(s):
-%   this            - [obj] MultiscaleElectrophysiologyFile object
+%   this            - [obj] MultiscaleElectrophysiologyFile_2p1 object
 %   sample_index    - [num array] array of sample index (must be integers)
 %   st_unit         - [str] (optional) sample time unit: 'uUTC' (default)
 %                     or 'u', 'mSec', 'Second' or 's', 'Minute' or 'm', 'Hour' or
@@ -24,7 +24,7 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, varargin)
 % See also SampleTime2Index.
 
 % Copyright 2019 Richard J. Cui. Created: Mon 05/06/2019  9:29:08.940 PM
-% $Revision: 0.9 $  $Date: Mon 06/03/2019  4:52:48.362 PM $
+% $Revision: 1.0 $  $Date: Sun 12/29/2019  4:43:20.432 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA

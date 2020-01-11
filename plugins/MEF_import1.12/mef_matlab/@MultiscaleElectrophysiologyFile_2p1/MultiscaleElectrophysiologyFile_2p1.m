@@ -1,32 +1,37 @@
-classdef MultiscaleElectrophysiologyFile < handle
-    % Class MULTISCALEELECTROPHYSIOLOGYFILE processes MEF2.1 data format
+classdef MultiscaleElectrophysiologyFile_2p1 < handle
+    % Class MULTISCALEELECTROPHYSIOLOGYFILE_2P1 processes MEF 2.1 data
     %
     % Syntax:
-    %   this = MultiscaleElectrophysiologyFile;
-    %   this = MultiscaleElectrophysiologyFile(wholename);
-    %   this = MultiscaleElectrophysiologyFile(filepath, filename);
-    %   this = MultiscaleElectrophysiologyFile(__, 'SubjectPassword', subj_pw);
-    %   this = MultiscaleElectrophysiologyFile(__, 'SessionPassword', sess_pw);
-    %   this = MultiscaleElectrophysiologyFile(__, 'DataPassword', data_pw);
+    %   this = MultiscaleElectrophysiologyFile_2p1;
+    %   this = MultiscaleElectrophysiologyFile_2p1(wholename);
+    %   this = MultiscaleElectrophysiologyFile_2p1(filepath, filename);
+    %   this = MultiscaleElectrophysiologyFile_2p1(__, 'SubjectPassword', subj_pw);
+    %   this = MultiscaleElectrophysiologyFile_2p1(__, 'SessionPassword', sess_pw);
+    %   this = MultiscaleElectrophysiologyFile_2p1(__, 'DataPassword', data_pw);
     %
     % Input(s):
-    %   wholename       - [str] fullpath and name of MEF file
-    %   filepath        - [str] fullpath of MEF
-    %   filename        - [str] name of MEF file, including ext
-    %   subj_pw         - [str] (para) password of subject info (default is empty string)
+    %   wholename       - [str] (optional) session fullpath plus channel 
+    %                     name of MEF file
+    %   filepath        - [str] (optional) fullpath of session recorded in 
+    %                     MEF file
+    %   filename        - [str] (optional) name of MEF channel file, 
+    %                     including ext
+    %   subj_pw         - [str] (para) password of subject info (default is
+    %                     empty string)
     %   sess_pw         - [str] (para) password of session info
     %   data_pw         - [str] (para) password of data info
     %
     % Output(s):
-    %   this            - [object] MultiscaleElectrophysiologyFile object
+    %   this            - [object] MultiscaleElectrophysiologyFile_2p1 object
     %
     % Note:
-    %   This class processes MEF ver2.1.
+    %   This class processes a signal channel of data recorded in MEF
+    %   ver2.1 format.
     %
     % See also this.readHeader.
     
     % Copyright 2019 Richard J. Cui. Created: Mon 04/29/2019  8:11:02.485 PM
-    % $Revision: 0. $  $Date: Mon 05/27/2019  3:28:33.118 PM $
+    % $Revision: 0.7 $  $Date: Sun 12/29/2019 12:47:45.988 PM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -63,8 +68,8 @@ classdef MultiscaleElectrophysiologyFile < handle
     % the constructor
     % ----------------
     methods
-        function this = MultiscaleElectrophysiologyFile(varargin)
-            % construct MultiscaleElectrophysiologyFile object
+        function this = MultiscaleElectrophysiologyFile_2p1(varargin)
+            % construct MultiscaleElectrophysiologyFile_2p1 object
             % ------------------------------------------------
             % defaults
             default_pw = '';

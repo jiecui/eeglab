@@ -1,11 +1,11 @@
 function event_table = getMAFEvent(this, maf_file)
-% GETMAFEVENT Get event table from MAF file
+% MULTISCALEELECTROPHYSIOLOGYFILE_2P1.GETMAFEVENT Get event table from MAF file
 %   
 % Syntax:
 %   event_table = getMAFEvent(this, maf_file)
 % 
 % Input(s):
-%   this            - [obj] MultiscaleElectrophysiologyFile object
+%   this            - [obj] MultiscaleElectrophysiologyFile_2p1 object
 %   maf_file        - [str] filepath + filename of MAF file
 % 
 % Output(s)
@@ -15,7 +15,7 @@ function event_table = getMAFEvent(this, maf_file)
 % See also .
 
 % Copyright 2019 Richard J. Cui. Created: Mon 05/27/2019  5:08:20.075 PM
-% $Revision: 0.5 $  $Date: Sun 06/02/2019  2:51:12.672 PM $
+% $Revision: 0.6 $  $Date: Sun 12/29/2019  4:43:20.432 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
