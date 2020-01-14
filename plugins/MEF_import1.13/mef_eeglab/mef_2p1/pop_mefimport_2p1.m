@@ -39,7 +39,7 @@ function [EEG, com] = pop_mefimport_2p1(EEG, varargin)
 % See also EEGLAB, mefimport.
 
 % Copyright 2019-2020 Richard J. Cui. Created: Tue 05/07/2019 10:33:48.169 PM
-% $Revision: 0.8 $  $Date: Sun 01/12/2020  2:35:48.393 PM $
+% $Revision: 0.9 $  $Date: Sun 01/12/2020  3:53:43.516 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -73,12 +73,17 @@ pw = q.pw;
 if isempty(sess_path)
     % use GUI to get the necessary information
     this = gui_mefimport; % this - MEFEEGLab_2p1 object
-    sess_path = this.SessionPath;
-    sel_chan = this.SelectedChannel;
-    % if GUI is cancelled
-    if isempty(sess_path) && isempty(sel_chan)
+    if isempty(this)
         EEG = [];
         return
+    else
+        sess_path = this.SessionPath;
+        sel_chan = this.SelectedChannel;
+        % if GUI is cancelled
+        if isempty(sess_path) && isempty(sel_chan)
+            EEG = [];
+            return
+        end % if
     end % if
 else
     this = MEFEEGLab_2p1(sess_path, pw);
