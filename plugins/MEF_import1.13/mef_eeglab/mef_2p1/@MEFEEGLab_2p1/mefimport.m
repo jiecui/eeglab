@@ -15,8 +15,9 @@ function OUTEEG = mefimport(this, INEEG, varargin)
 %   start_end       - [1 x 2 array] (optional) [start time/index, end
 %                     time/index] of the signal to be extracted fromt the
 %                     file (default: the entire signal)
-%   se_unit         - [str] (optional) unit of start_end: 'uUTC' (default),
+%   se_unit         - [str] (optional) unit of start_end: 'uUTC',
 %                     'Index', 'Second', 'Minute', 'Hour', and 'Day'
+%                     (default: '')
 %   sel_chan        - [str array] (para) the names of the selected channels
 %                     (default: all channels)
 %   pw              - [str] (para) passwords of MEF file
@@ -42,7 +43,7 @@ function OUTEEG = mefimport(this, INEEG, varargin)
 % See also eeglab, eeg_checkset, pop_mefimport. 
 
 % Copyright 2019-2020 Richard J. Cui. Created: Wed 05/08/2019  3:19:29.986 PM
-% $Revision: 1.3 $  $Date: Sun 01/12/2020  2:35:48.393 PM $
+% $Revision: 1.4 $  $Date: Mon 01/13/2020 11:46:32.896 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -61,6 +62,9 @@ if isempty(start_end)
 end % if
 % unit
 se_unit = q.se_unit;
+if isempty(se_unit)
+    se_unit = this.SEUnit;
+end % if
 % selected channel
 sel_chan = q.SelectedChannel;
 if isempty(sel_chan)
@@ -131,7 +135,7 @@ OUTEEG.setname = sprintf('Data from %s', this.Institution);
 
 % subject
 % -------
-OUTEEG.subject = thsi.SubjectID;
+OUTEEG.subject = this.SubjectID;
 
 % trials
 % ------
@@ -154,7 +158,7 @@ if isempty(start_end)
     OUTEEG.xmin = this.SampleIndex2Time(1, 'second');
     OUTEEG.xmax = this.SampleIndex2Time(num_samples, 'second');
 else
-    switch lower(unit)
+    switch lower(se_unit)
         case 'index'
             num_samples = diff(start_end)+1;
             OUTEEG.xmin = this.SampleIndex2Time(start_end(1), 'second');
@@ -165,7 +169,7 @@ else
             bs_index = this.SampleTime2Index(start_end, se_unit);
             num_samples = diff(bs_index)+1;
         otherwise
-            bs_index = mef1.SampleTime2Index(start_end, se_unit);
+            bs_index = this.SampleTime2Index(start_end, se_unit);
             num_samples = diff(bs_index)+1;
             OUTEEG.xmin = this.SampleIndex2Time(bs_index(1), 'second');
             OUTEEG.xmax = this.SampleIndex2Time(bs_index(2), 'second');
@@ -182,7 +186,6 @@ OUTEEG.pnts = num_samples;
 
 % comments
 % --------
-% TODO
 OUTEEG.comments = sprintf('Acauisition system - %s\ncompression algorithm - %s',...
     this.AcquisitionSystem, this.CompressionAlgorithm);
 
@@ -198,9 +201,9 @@ OUTEEG.data = data;
 % chanlocs
 % --------
 chanlocs = struct([]);
-channame = this.ChannelName;
-for k = 1:nueml(channame)
-    chanlocs(k).labels = convertStringsToChars(channame(k));
+sel_chan = this.SelectedChannel;
+for k = 1:numel(sel_chan)
+    chanlocs(k).labels = convertStringsToChars(sel_chan(k));
 end % for
 OUTEEG.chanlocs = chanlocs;
 
@@ -213,14 +216,14 @@ function q = parseInputs(varargin)
 
 % defaults
 default_se = [];
-default_ut = 'uutc';
+default_ut = '';
 expected_ut = {'index', 'uutc', 'second', 'minute', 'hour', 'day'};
 default_sc = [];
-default_pw = struct('subject', '', 'session', '', 'data', '');
+default_pw = struct([]);
 
 % parse rules
 p = inputParser;
-p.addRequired('this', @(x) isobject(x) & strcmpi(class(x), 'MEFEEGLab_2p1'));
+p.addRequired('this', @isobject);
 p.addRequired('INEEG', @(x) isempty(x) || isstruct(x));
 p.addOptional('start_end', default_se,...
     @(x) isnumeric(x) & numel(x) == 2 & x(1) <= x(2));

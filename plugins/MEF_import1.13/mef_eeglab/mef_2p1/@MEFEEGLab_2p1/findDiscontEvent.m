@@ -11,8 +11,8 @@ function dc_event = findDiscontEvent(this, start_end, unit)
 %   start_end       - [1 x 2 array] (optional) [start time/index, end time/index] of 
 %                     the signal to be extracted from the file (default:
 %                     the entire signal)
-%   unit            - [str] (optional) unit of start_end: 'Index' (default), 'uUTC',
-%                     'Second', 'Minute', 'Hour', and 'Day'
+%   unit            - [str] (optional) unit of start_end: 'Index', 'uUTC',
+%                     'Second', 'Minute', 'Hour', and 'Day' (default = '')
 % Output(s):
 %   dc_event        - [struct] event structure
 % 
@@ -21,7 +21,7 @@ function dc_event = findDiscontEvent(this, start_end, unit)
 % See also .
 
 % Copyright 2020 Richard J. Cui. Created: Sun 01/12/2020  2:35:48.393 PM
-% $Revision: 0.1 $  $Date: Sun 01/12/2020  2:35:48.393 PM $
+% $Revision: 0.2 $  $Date: Mon 01/13/2020 11:48:37.703 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -37,6 +37,9 @@ if isempty(start_end)
     start_end = this.StartEnd;
 end % if
 unit = q.unit;
+if isempty(unit)
+    unit = this.SEUnit;
+end % if
 
 % =========================================================================
 % main process
@@ -78,7 +81,7 @@ function q = parseInputs(varargin)
 
 % defaults
 defaultSE = [];
-defaultUnit = 'uutc';
+defaultUnit = '';
 expectedUnit = {'index', 'uutc', 'second', 'minute', 'hour', 'day'};
 
 % parse rules
