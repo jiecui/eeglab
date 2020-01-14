@@ -112,7 +112,7 @@ default_pw = struct([]); % password
 
 % parse rules
 p = inputParser;
-p.addRequired('this', @(x) isobject(x) & strcmpi(class(x), 'MEFSession_2p1'));
+p.addRequired('this', @isobject);
 p.addOptional('begin_stop', default_bs,...
     @(x) isnumeric(x) & numel(x) == 2 & x(1) <= x(2));
 p.addOptional('bs_unit', default_ut, @(x) any(validatestring(x, expected_ut)));
