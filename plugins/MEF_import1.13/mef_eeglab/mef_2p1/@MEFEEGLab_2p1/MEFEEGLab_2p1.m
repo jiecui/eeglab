@@ -16,7 +16,7 @@ classdef MEFEEGLab_2p1 < MEFSession_2p1
     % See also .
     
     % Copyright 2019-2020 Richard J. Cui. Created: Mon 12/30/2019 10:52:49.006 PM
-    % $Revision: 0.6 $  $Date: Fri 01/10/2020  5:42:05.951 PM $
+    % $Revision: 0.7 $  $Date: Wed 01/15/2020 12:05:20.430 PM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -42,7 +42,7 @@ classdef MEFEEGLab_2p1 < MEFSession_2p1
             % parse inputs
             % ------------
             % default
-            default_pw = struct('Session', '', 'Subject', '', 'Data', '');
+            default_pw = struct([]);
             
             % parse rules
             p = inputParser;
