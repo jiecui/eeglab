@@ -76,7 +76,7 @@ end % if
 guimef = findobj('Tag', 'gui_mefimport');
 delete(guimef)
 
-function [start_end, unit, this] = getStartend(this, handles)
+function [start_end, unit] = getStartend(this, handles)
 % get start and end point
 
 unit_list = get(handles.popupmenu_unit, 'String');
@@ -93,8 +93,6 @@ switch lower(unit)
         start_end = this.SampleTime2Index([uutc_start, uutc_end], unit);
 end % switch
 
-this.StartEnd = start_end;
-this.SEUnit = unit;
 
 function pushbutton_folder_Callback(hObject, eventdata, handles)
 % get data folder and obtain corresponding data information
@@ -118,7 +116,9 @@ pw = struct('Subject', subj_pw, 'Session', sess_pw, 'Data', data_pw);
 this = MEFEEGLab_2p1(sess_path, pw);
 
 % get start and end points of imported signal in sample index
-[start_end, unit, this] = getStartend(this, handles);
+[start_end, unit] = getStartend(this, handles);
+this.StartEnd = start_end;
+this.SEUnit = unit;
 if strcmpi(unit, 'index') % get recoridng start time in unit
     record_start = 0;
 else
@@ -129,32 +129,18 @@ set(handles.edit_end, 'String', num2str(start_end(2)-record_start))
 handles.start_end = start_end;
 handles.old_unit = unit;
 handles.unit = unit;
-handles.this = this;
 
 % get channel information
 Table = table2cell(this.SessionInformation(:, {'ChannelName',...
     'SamplingFreq', 'Samples', 'IndexEntry', 'DiscountinuityEntry'}));
-% num_mef = numel(list_mef); % number of mef/channels in the folder
-% colname = get(handles.uitable_channel, 'ColumnName');
-% num_colname = numel(colname);
-% Table = cell(num_mef, num_colname);
 num_chan = size(Table, 1);
-rownames = cell(num_chan, 1);
-for k = 1:num_chan
-    %     fp_k = list_mef(k).folder;
-    %     fn_k = list_mef(k).name;
-    %     mef_k = MultiscaleElectrophysiologyFile_2p1(fp_k, fn_k, 'SubjectPassword', subj_pw);
-    %     Table{k, 1} = mef_k.Header.channel_name;
-    %     Table{k, 2} = mef_k.Header.sampling_frequency;
-    %     Table{k, 3} = mef_k.Header.number_of_samples;
-    %     Table{k, 4} = mef_k.Header.number_of_index_entries;
-    %     Table{k, 5} = mef_k.Header.number_of_discontinuity_entries;
-    Table{k, 6} = true;
-    
-    rownames{k} = num2str(k);
-end % for
+Table(:, 1) = convertStringsToChars(this.SessionInformation.ChannelName);
+Table(:, end+1) = num2cell(true(num_chan, 1));
+rownames = num2cell(num2str((1:num_chan)'));
 
 handles.list_chan = this.ChannelName;
+this.SelectedChannel = handles.list_chan;
+handles.this = this;
 guidata(hObject, handles)
 
 set(handles.uitable_channel, 'Data', Table, 'RowName', rownames, 'Enable' , 'On')

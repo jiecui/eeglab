@@ -39,7 +39,7 @@ function [EEG, com] = pop_mefimport_2p1(EEG, varargin)
 % See also EEGLAB, mefimport.
 
 % Copyright 2019-2020 Richard J. Cui. Created: Tue 05/07/2019 10:33:48.169 PM
-% $Revision: 0.9 $  $Date: Sun 01/12/2020  3:53:43.516 PM $
+% $Revision: 1.1 $  $Date: Tue 01/14/2020 10:19:10.968 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -91,24 +91,22 @@ else
     this.StartEnd = start_end;
     this.SEUnit = unit;
 end % if
-start_end = this.StartEnd;
-unit = this.SEUnit;
 EEG = this.mefimport(EEG);
 EEG = eeg_checkset(EEG); % from eeglab functions
 
 % process discontinuity events
 % ----------------------------
 if height(this.Continuity) > 1
-    discont_event = findDiscontEvent(this, start_end, unit);
+    discont_event = this.findDiscontEvent;
     EEG.event = discont_event;
     EEG.urevent = rmfield(discont_event, 'urevent');
 end % if
 
 % keep some data in eeglab space
 % ------------------------------
-mef_data.this = this;
-mef_data.start_end = start_end;
-mef_data.unit = unit;
+mef_data.this = this; % an instance of MEFEEGLab object
+mef_data.start_end = this.StartEnd;
+mef_data.unit = this.SEUnit;
 EEG.etc.mef_data = mef_data;
 
 % return the string command
