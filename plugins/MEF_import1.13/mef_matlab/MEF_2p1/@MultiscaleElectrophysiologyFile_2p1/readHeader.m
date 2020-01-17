@@ -1,5 +1,5 @@
 function header = readHeader(this, varargin)
-% MULTISCALEELECTROPHYSIOLOGYFILE.READHEADER Read HEADER structure from MEF file
+% MULTISCALEELECTROPHYSIOLOGYFILE_2P1.READHEADER Read HEADER structure from MEF 2.1 file
 % 
 % Syntax:
 %   header = readHeader(this)
@@ -143,8 +143,8 @@ function header = readHeader(this, varargin)
 % 
 % See also .
 
-% Copyright 2019 Richard J. Cui. Created: Mon 04/29/2019 10:33:58.517 PM
-% $Revision: 0.5 $  $Date: Thu 01/09/2020  4:11:13.040 PM $
+% Copyright 2019-2020 Richard J. Cui. Created: Mon 04/29/2019 10:33:58.517 PM
+% $Revision: 0.6 $  $Date: Thu 01/16/2020 10:50:40.905 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
