@@ -22,8 +22,8 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 % 
 % See also .
 
-% Copyright 2019 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 1.4 $  $Date: Mon 01/13/2020  6:44:32.523 PM $
+% Copyright 2019-2020 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
+% $Revision: 1.5 $  $Date: MFri 01/17/2020  3:38:03.893 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -71,8 +71,9 @@ maf_imp = [try_strings.no_check, 'EEG = pop_mafimport(EEG);',...
     catch_strings.new_and_hist];
 
 % create menu in EEGLAB
-uimenu(impeventmenu, 'label', 'From Mayo Clinic .maf file', 'callback',...
-    maf_imp, 'separator', 'on');
+menu_maf = uimenu(impeventmenu, 'label', 'From Mayo Clinic .maf file',...
+    'separator', 'on');
+uimenu(menu_maf, 'label', 'MEF 2.1', 'callback', maf_imp);
 
 end % function
  
