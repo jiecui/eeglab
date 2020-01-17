@@ -36,7 +36,7 @@ function varargout = get_sessinfo(this)
 % See also MEFSession_2p1.
 
 % Copyright 2020 Richard J. Cui. Created: Fri 01/03/2020  4:19:10.683 PM
-% $ Revision: 0.2 $  $ Date: Sat 01/11/2020  1:10:10.203 PM $
+% $ Revision: 0.3 $  $ Date: Thu 01/16/2020 10:50:40.905 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -61,7 +61,7 @@ if isempty(sess_info)
     acq_sys = '';
     comp_alg = '';
     warning('MEFSession_2p1:get_sessinfo',...
-        'The session is either empty.')
+        'The session is likely empty.')
 else
     this.SessionInformation = sess_info;
     if this.checkSessValid == true
@@ -86,7 +86,7 @@ else
         subj_id = '';
         acq_sys = '';
         comp_alg = '';
- end % if
+    end % if
 end % if
 
 % update paras of MEFSession_2p1
