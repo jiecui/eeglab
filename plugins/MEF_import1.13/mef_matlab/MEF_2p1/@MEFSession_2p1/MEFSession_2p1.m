@@ -19,7 +19,7 @@ classdef MEFSession_2p1 < MultiscaleElectrophysiologyFile_2p1
     % See also get_sessinfo.
 
 	% Copyright 2019-2020 Richard J. Cui. Created: Mon 12/30/2019 10:52:49.006 PM
-	% $Revision: 0.6 $  $Date: Fri 01/10/2020 10:15:46.733 PM $
+	% $Revision: 0.7 $  $Date: Thu 01/16/2020 10:50:40.905 PM $
 	%
 	% 1026 Rocky Creek Dr NE
 	% Rochester, MN 55906, USA
@@ -35,6 +35,8 @@ classdef MEFSession_2p1 < MultiscaleElectrophysiologyFile_2p1
         ChannelName         % channel names
         SamplingFrequency   % in Hz
         Samples             % number of samples
+        DataBlocks          % number of data blocks
+        TimeGaps            % number of discountinuity time gaps
         BeginStop           % Begin and stop indexes of entire signal
         Unit                % unit of BeginStop
         Institution         % name of the institute

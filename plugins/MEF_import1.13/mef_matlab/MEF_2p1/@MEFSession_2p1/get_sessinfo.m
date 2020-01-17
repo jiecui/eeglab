@@ -54,6 +54,8 @@ if isempty(sess_info)
     channame = '';
     fs = NaN;
     samples = NaN;
+    num_data_block = [];
+    num_time_gap = [];
     begin_stop = [];
     unit = '';
     institution = '';
@@ -68,6 +70,8 @@ else
         channame = sess_info.ChannelName';
         fs = unique(sess_info.SamplingFreq);
         samples = unique(sess_info.Samples);
+        num_data_block = unique(sess_info.IndexEntry);
+        num_time_gap = unique(sess_info.DiscountinuityEntry)-1;
         begin_stop = [unique(sess_info.Begin), unique(sess_info.Stop)];
         institution = unique(sess_info.Institution);
         subj_id = unique(sess_info.SubjectID);
@@ -80,6 +84,8 @@ else
         channame = '';
         fs = NaN;
         samples = NaN;
+        num_data_block = [];
+        num_time_gap = [];
         begin_stop = [];
         unit = '';
         institution = '';
@@ -94,6 +100,8 @@ end % if
 this.ChannelName = channame;
 this.SamplingFrequency = fs;
 this.Samples = samples;
+this.DataBlocks = num_data_block;
+this.TimeGaps = num_time_gap;
 this.BeginStop = begin_stop;
 this.Unit = unit;
 this.Institution = institution;
