@@ -150,8 +150,12 @@ set(handles.checkbox_segment, 'Enable', 'On')
 set(handles.popupmenu_unit, 'Enable', 'On')
 
 % display session information
+set(handles.text_subjid_val, 'String', this.SubjectID)
+set(handles.text_institute_val, 'String', this.Institution)
 set(handles.text_sampfreq_val, 'String', num2str(this.SamplingFrequency))
 set(handles.text_samples_val, 'String', num2str(this.Samples))
+set(handles.text_datablk_val, 'String', num2str(this.DataBlocks))
+set(handles.text_timegaps_val, 'String', num2str(this.TimeGaps))
 
 
 function edit_path_CreateFcn(hObject, eventdata, handles)
