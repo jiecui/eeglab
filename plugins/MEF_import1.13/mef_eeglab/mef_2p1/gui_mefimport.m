@@ -17,7 +17,7 @@ function varargout = gui_mefimport(varargin)
 % See also pop_mefimport, gui_mefimport.
 
 % Copyright 2019-2020 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 1.0 $  $Date: Sun 01/12/2020  2:35:48.393 PM $
+% $Revision: 1.1 $  $Date:Wed 01/15/2020 10:50:10.280 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -131,11 +131,11 @@ handles.old_unit = unit;
 handles.unit = unit;
 
 % get channel information
-Table = table2cell(this.SessionInformation(:, {'ChannelName',...
-    'SamplingFreq', 'Samples', 'IndexEntry', 'DiscountinuityEntry'}));
-num_chan = size(Table, 1);
-Table(:, 1) = convertStringsToChars(this.SessionInformation.ChannelName);
-Table(:, end+1) = num2cell(true(num_chan, 1));
+channame = this.ChannelName(:);
+num_chan = numel(channame);
+Table = cell(num_chan, 2);
+Table(:, 1) = convertStringsToChars(channame);
+Table(:, 2) = num2cell(true(num_chan, 1));
 rownames = num2cell(num2str((1:num_chan)'));
 
 handles.list_chan = this.ChannelName;
@@ -143,10 +143,15 @@ this.SelectedChannel = handles.list_chan;
 handles.this = this;
 guidata(hObject, handles)
 
+% display import information
 set(handles.uitable_channel, 'Data', Table, 'RowName', rownames, 'Enable' , 'On')
 set(handles.pushbutton_deselall, 'Enable', 'On')
 set(handles.checkbox_segment, 'Enable', 'On')
 set(handles.popupmenu_unit, 'Enable', 'On')
+
+% display session information
+set(handles.text_sampfreq_val, 'String', num2str(this.SamplingFrequency))
+set(handles.text_samples_val, 'String', num2str(this.Samples))
 
 
 function edit_path_CreateFcn(hObject, eventdata, handles)
