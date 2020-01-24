@@ -105,7 +105,7 @@ function q = parseInputs(this, varargin)
 % defaults
 default_bs = []; % begin_stop
 default_ut = 'uutc'; % unit
-expected_ut = {'index', 'uutc', 'second', 'minute', 'hour', 'day'};
+expected_ut = {'index', 'uutc', 'msec', 'second', 'minute', 'hour', 'day'};
 default_sp = ''; % session path
 default_sc = []; % selected channel
 default_pw = struct([]); % password

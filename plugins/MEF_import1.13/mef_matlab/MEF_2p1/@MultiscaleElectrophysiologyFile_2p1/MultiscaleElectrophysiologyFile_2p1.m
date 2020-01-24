@@ -149,6 +149,7 @@ classdef MultiscaleElectrophysiologyFile_2p1 < handle
         this = setDataPassword(this, password) % set MEF data password
         this = setContinuity(this, cont_table) % set Continuity table
         event_table = getMAFEvent(this, maf_file) % get event table from MAF
+        out_time = SampleUnitConvert(this, in_time, varargin) % convert units of time points
     end % methods
 end % classdef
 

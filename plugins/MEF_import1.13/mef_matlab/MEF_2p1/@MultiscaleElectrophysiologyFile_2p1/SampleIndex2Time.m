@@ -23,8 +23,8 @@ function [sample_time, sample_yn] = SampleIndex2Time(this, varargin)
 % 
 % See also SampleTime2Index.
 
-% Copyright 2019 Richard J. Cui. Created: Mon 05/06/2019  9:29:08.940 PM
-% $Revision: 0.9 $  $Date: Mon 06/03/2019  4:52:48.362 PM $
+% Copyright 2019-2020 Richard J. Cui. Created: Mon 05/06/2019  9:29:08.940 PM
+% $Revision: 1.0 $  $Date: Thu 01/23/2020 10:20:26.476 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -90,7 +90,7 @@ switch lower(st_unit)
     case 'hour'
         sorted_sample_time = sorted_sample_time/(60*60*1e6);
     case 'day'
-        sorted_sample_time = sorted_sample_time/(24*60*1e6);
+        sorted_sample_time = sorted_sample_time/(24*60*60*1e6);
 end % switch
 sample_time(orig_index) = sorted_sample_time;
 sample_yn(orig_index) = sorted_sample_yn;

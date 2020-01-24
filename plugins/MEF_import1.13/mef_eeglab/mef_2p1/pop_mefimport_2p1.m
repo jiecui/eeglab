@@ -16,9 +16,9 @@ function [EEG, com] = pop_mefimport_2p1(EEG, varargin)
 %   sess_path       - [str] path of the session
 %   sel_chan        - [string array] the name(s) of the data files in the
 %                     directory of sess_path.
-%   start_end       - [1 x 2 array] (optional) [start time/index, end time/index] of 
-%                     the signal to be extracted from the file (default:
-%                     the entire signal)
+%   start_end       - [1 x 2 array] (optional) relative [start time/index,
+%                     end time/index] of the signal to be extracted from
+%                     the file (default: the entire signal)
 %   unit            - [str] (optional) unit of start_end: 'uUTC' (default), 'Index',
 %                     'Second', 'Minute', 'Hour', and 'Day'
 %   pw              - [strct] (opt) password
@@ -40,10 +40,13 @@ function [EEG, com] = pop_mefimport_2p1(EEG, varargin)
 %   The command output is a hidden output that does not have to be
 %   described in the header.
 % 
+%   start_end is a relative time pint, which is relative to the beginning
+%   of data recording.
+% 
 % See also EEGLAB, mefimport.
 
 % Copyright 2019-2020 Richard J. Cui. Created: Tue 05/07/2019 10:33:48.169 PM
-% $Revision: 1.2 $  $Date: Wed 01/15/2020 12:05:20.430 PM $
+% $Revision: 1.4 $  $Date: Wed 01/22/2020 10:02:38.457 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -91,9 +94,15 @@ if isempty(sess_path)
     end % if
 else
     this = MEFEEGLab_2p1(sess_path, pw);
+    if isempty(sel_chan)
+        sel_chan = this.ChannelName;
+    end % if
     this.SelectedChannel = sel_chan;
-    this.StartEnd = start_end;
     this.SEUnit = unit;
+    if isempty(start_end)
+        start_end = this.abs2relativeTimePoint(this.BeginStop, unit);
+    end % if
+    this.StartEnd = start_end; % relative time points
 end % if
 EEG = this.mefimport(EEG);
 EEG = eeg_checkset(EEG); % from eeglab functions
