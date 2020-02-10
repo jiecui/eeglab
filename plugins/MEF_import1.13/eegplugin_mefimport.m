@@ -52,14 +52,16 @@ addpath(genpath(fpath)) % add all subdirectories into matlab paths
 menu_import_mef = findobj(fig, 'tag', 'import data');
 
 % menu callback
-mef_imp_2p1 = [try_strings.no_check, 'EEG = pop_mefimport(EEG);',...
+mef_imp_2p1 = [try_strings.no_check, 'EEG = pop_mefimport(EEG, 2.1);',...
+    catch_strings.new_and_hist];
+mef_imp_3p0 = [try_strings.no_check, 'EEG = pop_mefimport(EEG, 3.0);',...
     catch_strings.new_and_hist];
 
 % create menus in EEGLab
 menu_from_mayo = uimenu(menu_import_mef, 'label', 'From Mayo Clinic .mef file',...
     'separator', 'on');
 uimenu(menu_from_mayo, 'label', 'MEF 2.1', 'callback', mef_imp_2p1);
-uimenu(menu_from_mayo, 'label', 'MEF 3.0');
+uimenu(menu_from_mayo, 'label', 'MEF 3.0', 'callback', mef_imp_3p0);
 
 % Setup menus of importing MAF files into EEGLAB
 % ----------------------------------------------

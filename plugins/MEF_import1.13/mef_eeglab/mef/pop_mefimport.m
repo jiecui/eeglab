@@ -2,13 +2,13 @@ function [EEG, com] = pop_mefimport(EEG, varargin)
 % POP_MEFIMPORT Import MEF data into EEGLab with/out GUI
 %
 % Syntax:
-%   [EEG, com] = pop_mefimport_2p1(EEG)
-%   [EEG, com] = pop_mefimport_2p1(__, sess_path)
-%   [EEG, com] = pop_mefimport_2p1(__, sess_path, sel_chan)
-%   [EEG, com] = pop_mefimport_2p1(__, sess_path, sel_chan, start_end)
-%   [EEG, com] = pop_mefimport_2p1(__, sess_path, sel_chan, start_end, unit)
-%   [EEG, com] = pop_mefimport_2p1(__, pw)
-%   [EEG, com] = __(__, 'MEFVersion', mef_ver)
+%   [EEG, com] = pop_mefimport(EEG)
+%   [EEG, com] = __(__, mef_ver)
+%   [EEG, com] = __(__, sess_path)
+%   [EEG, com] = __(__, sess_path, sel_chan)
+%   [EEG, com] = __(__, sess_path, sel_chan, start_end)
+%   [EEG, com] = __(__, sess_path, sel_chan, start_end, unit)
+%   [EEG, com] = __(__, pw)
 %
 % Input(s):
 %   EEG             - [strcut] EEGLab dataset structure. See Note for
@@ -23,7 +23,6 @@ function [EEG, com] = pop_mefimport(EEG, varargin)
 %   unit            - [str] (optional) unit of start_end: 'uUTC' (default), 'Index',
 %                     'Second', 'Minute', 'Hour', and 'Day'
 %   pw              - [strct] (opt) password
-%   mef_ver         - [num] (para) MEF version of the data to be imported
 % 
 % Outputs:
 %   EEG             - [struct] EEGLab dataset structure. See Note for
@@ -74,7 +73,7 @@ start_end = q.start_end;
 unit = q.unit;
 pw = q.pw;
 
-mef_ver = q.MEFVersion;
+mef_ver = q.mef_ver;
 switch mef_ver
     case 2.1
         mef_eeglab = @MEFEEGLab_2p1;
@@ -91,7 +90,7 @@ end % switch
 % --------------
 if isempty(sess_path)
     % use GUI to get the necessary information
-    this = gui_mefimport; % this - MEFEEGLab_2p1 object
+    this = gui_mefimport(mef_ver); % this - MEFEEGLab_2p1 object
     if isempty(this)
         EEG = [];
         return
@@ -146,26 +145,26 @@ end % funciton
 function q = parseInputs(EEG, varargin)
 
 % defaults
+default_mv = 2.1; % mef version
 defaultFP = '';
 defaultFN = '';
 defaultSE = [];
 defaultUnit = 'uutc';
 expectedUnit = {'index', 'uutc', 'second', 'minute', 'hour', 'day'};
 default_pw = struct([]);
-default_mv = 2.1; % mef version
 
 valid_se = @(x) (isnumeric(x) && numel(x) == 2 && x(1) <= x(2));
 
 % parse rules
 p = inputParser;
 p.addRequired('EEG', @(x) isempty(x) || isstruct(x));
+p.addOptional('mef_ver', default_mv, @isnumeric);
 p.addOptional('sess_path', defaultFP, @ischar);
 p.addOptional('sel_chan', defaultFN, @(x) ischar(x) || iscellstr(x) || isstring(x));
 p.addOptional('start_end', defaultSE, valid_se);
 p.addOptional('unit', defaultUnit,...
     @(x) any(validatestring(x, expectedUnit)));
 p.addOptional('pw', default_pw, @isstruct);
-p.addParameter('MEFVersion', default_mv, @(x) any([2.1, 3.0] == x));
 
 % parse and return the results
 p.parse(EEG, varargin{:});

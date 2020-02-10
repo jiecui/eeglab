@@ -35,7 +35,7 @@ function [x, t] = importSignal(this, varargin)
 % See also .
 
 % Copyright 2020 Richard J. Cui. Created: Wed 02/05/2020 10:24:56.722 PM
-% $Revision: 0.1 $  $Date: Wed 02/05/2020 10:24:56.722 PM $
+% $Revision: 0.1 $  $Date: Mon 02/10/2020 11:57:50.063 AM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -45,58 +45,74 @@ function [x, t] = importSignal(this, varargin)
 % =========================================================================
 % parse inputs
 % =========================================================================
+% parse inputs now
+% ----------------
 q = parseInputs(this, varargin{:});
 start_end = q.start_end;
 st_unit = q.st_unit;
-switch lower(st_unit)
-    case 'index'
-        se_index = start_end;
-    otherwise
-        se_index = this.SampleTime2Index(start_end, st_unit);
-end % switch
 filepath = q.filepath;
-if isempty(filepath)
-    filepath = this.FilePath;
-else
-    this.FilePath = filepath;
-end % if
 filename = q.filename;
-if isempty(filename)
-    filename = this.FileName;
-else
-    this.FileName = filename;
-end % if
-
-% verbose
-num_samples = diff(start_end)+1;
-if num_samples > 2^20
-    verbo = true; 
-else
-    verbo = false;
-end % if
-
-wholename = fullfile(filepath, filename);
+l1_pw = q.Level1Password;
+l2_pw = q.Level2Password;
+al = q.AccessLevel;
 
 % password
-l1_pw = q.Level1Password;
+% --------
 if isempty(l1_pw)
     l1_pw = this.Level1Password;
 else
     this.Level1Password = l1_pw;
 end % if
 
-l2_pw = q.Level2Password;
 if isempty(l2_pw)
     l2_pw = this.Level2Password;
 else
     this.Level2Password = l2_pw;
 end % if
 
-al = q.AccessLevel;
 if isempty(al)
     al = this.AccessLevel;
 else
     this.AccessLevel = al;
+end % if
+
+pw = this.processPassword('Level1Password', l1_pw,...
+                          'Level2Password', l2_pw,...
+                          'AccessLevel', al);
+
+% get the channel metadata if both filepath and filename are provided
+% -------------------------------------------------------------------
+if isempty(filepath)
+    filepath = this.FilePath;
+else
+    this.FilePath = filepath;
+end % if
+if isempty(filename)
+    filename = this.FileName;
+else
+    this.FileName = filename;
+end % if
+
+wholename = fullfile(filepath, filename);
+if ~isempty(filepath) && ~isempty(filename)
+    [header, channel] = this.readHeader(wholename, pw, al);
+    this.Header = header;
+    this.Channel = channel; 
+end % if
+
+% start and end time points
+% -------------------------
+switch lower(st_unit)
+    case 'index'
+        se_index = start_end;
+    otherwise
+        se_index = this.SampleTime2Index(start_end, st_unit);
+end % switch
+
+if isempty(start_end) == true
+    start_ind = this.SampleTime2Index(this.Channel.earliest_start_time);
+    end_ind = this.SampleTime2Index(this.Channel.latest_end_time);
+    se_index = [start_ind, end_ind];
 end % if
 
 % check
@@ -111,12 +127,18 @@ if se_index(2) > this.Channel.metadata.section_2.number_of_samples
         'Reqested data samples after the recording are discarded')
 end % if
 
+% verbose
+% -------
+num_samples = diff(start_end)+1;
+if num_samples > 2^20
+    verbo = true; 
+else
+    verbo = false;
+end % if
+
 % =========================================================================
 % load the data
 % =========================================================================
-pw = this.processPassword('Level1Password', l1_pw,...
-                          'Level2Password', l2_pw,...
-                          'AccessLevel', al);
 if verbo, fprintf('-->Loading...'), end % if
 x = this.read_mef_ts_data_3p0(wholename, pw, 'samples', se_index(1), se_index(2));
 x = double(x(:)).'; % change to row vector
@@ -134,9 +156,7 @@ end
 function q = parseInputs(this, varargin)
 
 % defaults
-start_ind = this.SampleTime2Index(this.Channel.earliest_start_time);
-end_ind = this.SampleTime2Index(this.Channel.latest_end_time);
-defaultSE = [start_ind, end_ind];
+defaultSE = [];
 defaultSTUnit = 'index';
 expectedSTUnit = {'index', 'uutc', 'second', 'minute', 'hour', 'day'};
 default_fp = '';

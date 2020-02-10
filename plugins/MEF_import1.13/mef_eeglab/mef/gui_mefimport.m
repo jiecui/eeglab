@@ -17,7 +17,7 @@ function varargout = gui_mefimport(varargin)
 % See also pop_mefimport, gui_mefimport.
 
 % Copyright 2019-2020 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 1.2 $  $Date: Wed 01/22/2020 10:02:38.457 PM $
+% $Revision: 1.3 $  $Date: Sun 02/09/2020 10:13:02.938 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -44,6 +44,18 @@ end
 % End initialization code - DO NOT EDIT
 
 function gui_mefimport_OpeningFcn(hObject, eventdata, handles, varargin)
+
+% parse inputs
+% -------------
+if isempty(varargin)
+    mef_ver = 2.1;
+else
+    mef_ver = varargin{1};
+    if ~any([2.1, 3.0] == mef_ver)
+        error('gui_mefimport:invalidMEFVersion', 'the version of MEF is invalid')
+    end % if
+end % if
+
 % initialization
 % --------------
 set(handles.checkbox_segment, 'Value', 0)
@@ -55,12 +67,19 @@ set(handles.edit_start, 'Enable', 'Off')
 set(handles.edit_end, 'Enable', 'Off')
 set(handles.uitable_channel, 'Enable' , 'Off')
 set(handles.checkbox_segment, 'Enable', 'Off')
+set(handles.uipanel_mefimport, 'Title', sprintf('Import MEF %.1f Data', mef_ver))
 
+handles.mef_ver = mef_ver;
 handles.old_unit = 'uUTC';
 
-handles.subject_pw = '';
-handles.session_pw = '';
-handles.data_pw = '';
+switch mef_ver
+    case 2.1
+        pw = struct('Subject', '', 'Session', '', 'Data', '');
+    case 3.0
+        pw = struct('Level1Password', '', 'Level2Password', '',...
+            'AccessLevel', 0);
+end % switch
+handles.pw = pw;
 
 handles.output = hObject;
 guidata(hObject, handles);
@@ -68,7 +87,7 @@ guidata(hObject, handles);
 uiwait();
 
 function varargout = gui_mefimport_OutputFcn(hObject, eventdata, handles)
-if isempty(handles)
+if isempty(handles) || isfield(handles, 'this') == false
     varargout{1} = [];
 else
     varargout{1} = handles.this;
@@ -101,12 +120,16 @@ end
 
 % get data info
 % -------------
-% get password
-subj_pw = handles.subject_pw;
-sess_pw = handles.session_pw;
-data_pw = handles.data_pw;
-pw = struct('Subject', subj_pw, 'Session', sess_pw, 'Data', data_pw);
-this = MEFEEGLab_2p1(sess_path, pw);
+mef_ver = handles.mef_ver;
+switch mef_ver
+    case 2.1
+        mef_eeglab = @MEFEEGLab_2p1;
+    case 3.0
+        mef_eeglab = @MEFEEGLab_3p0;
+end % switch
+
+pw = handles.pw;
+this = mef_eeglab(sess_path, pw);
 
 % get start and end points of imported signal in sample index
 [start_end, unit] = getStartend(this, handles);
@@ -329,7 +352,7 @@ if strcmpi(unit, old_unit) == true
     return
 end % if
 
-% MEFEEGLab_2p1 object
+% MEFEEGLab object
 this = handles.this;
 
 % change value according to the unit chosen
@@ -365,6 +388,21 @@ function pushbutton_setpasswords_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+mef_ver = handles.mef_ver;
+switch mef_ver
+    case 2.1
+        handles = set_pw_mef_2p1(handles);
+    case 3.0
+        handles = set_pw_mef_3p0(handles);
+end % switch
+
+guidata(hObject, handles)
+
+% =========================================================================
+% subroutines
+% =========================================================================
+function handles = set_pw_mef_2p1(handles)
+
 geometry = {[0.5, 1.27], [0.5, 1.27], [0.5, 1.27]};
 uilist = {...
     {'style', 'text', 'string', 'Subject', 'fontweight', 'bold'},...
@@ -382,10 +420,34 @@ res = inputgui(geometry, uilist, 'pophelp(''pop_mefimport'')', ...
     'Set MEF passwords -- gui_mefimport()');
 
 if ~isempty(res)
-    handles.subject_pw = res{1};
-    handles.session_pw = res{2};
-    handles.data_pw = res{3};
+    handles.pw.Subject = res{1};
+    handles.pw.Session = res{2};
+    handles.pw.Data = res{3};
 end % if
-guidata(hObject, handles)
+
+function handles = set_pw_mef_3p0(handles)
+
+geometry = {[0.5, 1.27], [0.5, 1.27], [0.5, 1.27]};
+uilist = {...
+    {'style', 'text', 'string', 'Level1Password', 'fontweight', 'bold'},...
+    {'style', 'edit', 'string', '', 'horizontalalignment', 'left',...
+        'tooltipstring', 'Input level 1 password'},...
+    {'style', 'text', 'string', 'Level2Password', 'fontweight', 'bold'},...
+    {'style', 'edit', 'string', '', 'horizontalalignment', 'left',...
+        'tooltipstring', 'Input level 2 password'},...
+    {'style', 'text', 'string', 'AccessLevel', 'fontweight', 'bold'},...
+    {'style', 'edit', 'string', '', 'horizontalalignment', 'left',...
+        'tooltipstring', 'Input access level'},...    
+    };
+
+res = inputgui(geometry, uilist, 'pophelp(''pop_mefimport'')', ...
+    'Set MEF passwords -- gui_mefimport()');
+
+if ~isempty(res)
+    handles.pw.Level1Password = res{1};
+    handles.pw.Level2Password = res{2};
+    handles.pw.AccessLevel = str2double(res{3});
+end % if
+
 
 % [EOF]

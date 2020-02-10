@@ -58,25 +58,27 @@ classdef MEFEEGLab_3p0 < MEFSession_3p0 & MEFEEGLab
             
             % operations during construction
             % ------------------------------
-            sesspath = q.sesspath;
-            password = q.password;
+            % call super class
+            this@MEFSession_3p0(q.sesspath, q.password);
+            % sesspath = q.sesspath;
+            % password = q.password;
+            % 
+            % if isempty(sesspath)
+            %     error('MEFEEGLab_3p0:noSessionPath',...
+            %         'Session path must be specified')
+            % else
+            %     this.SessionPath = sesspath;
+            % end % if
+            % this.Password = password;
+            % this.get_sessinfo; % check session information
             
-            if isempty(sesspath)
-                error('MEFEEGLab_3p0:noSessionPath',...
-                    'Session path must be specified')
-            else
-                this.SessionPath = sesspath;
-            end % if
-            this.Password = password;
-            this.get_sessinfo; % check session information
-            
-            % set MEF version to serve
-            if isempty(this.MEFVersion) == true
-                this.MEFVersion = 3.0;
-            elseif this.MEFVersion ~= 3.0
-                error('MEFEEGLab_3p0:invalidMEFVer',...
-                    'invalid MEF version; this function can serve only MEF 3.0')
-            end % if            
+            % % set MEF version to serve
+            % if isempty(this.MEFVersion) == true
+            %     this.MEFVersion = 3.0;
+            % elseif this.MEFVersion ~= 3.0
+            %     error('MEFEEGLab_3p0:invalidMEFVer',...
+            %         'invalid MEF version; this function can serve only MEF 3.0')
+            % end % if            
         end %function
     end % methods
     

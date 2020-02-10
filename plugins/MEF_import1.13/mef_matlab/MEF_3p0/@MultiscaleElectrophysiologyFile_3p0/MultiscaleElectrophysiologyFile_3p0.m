@@ -7,7 +7,7 @@ classdef MultiscaleElectrophysiologyFile_3p0 < MultiscaleElectrophysiologyFile
     %   this = __(filepath, filename);
     %   this = __(__, 'Level1Password', level_1_pw);
     %   this = __(__, 'Level2Password', level_2_pw);
-    %   this = __(__, 'AccessLvel', access_level);
+    %   this = __(__, 'AccessLevel', access_level);
     %
     % Input(s):
     %   wholename       - [str] (optional) session fullpath plus channel 
