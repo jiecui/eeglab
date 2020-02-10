@@ -1,5 +1,5 @@
-classdef MultiscaleElectrophysiologyFile_2p1 < handle
-    % Class MULTISCALEELECTROPHYSIOLOGYFILE_2P1 processes MEF 2.1 data
+classdef MultiscaleElectrophysiologyFile_2p1 < MultiscaleElectrophysiologyFile
+    % Class MULTISCALEELECTROPHYSIOLOGYFILE_2P1 processes MEF 2.1 channel data
     %
     % Syntax:
     %   this = MultiscaleElectrophysiologyFile_2p1;
@@ -30,8 +30,8 @@ classdef MultiscaleElectrophysiologyFile_2p1 < handle
     %
     % See also this.readHeader.
     
-    % Copyright 2019 Richard J. Cui. Created: Mon 04/29/2019  8:11:02.485 PM
-    % $Revision: 0.8 $  $Date: Wed 01/08/2020 11:39:57.259 AM $
+    % Copyright 2019-2020 Richard J. Cui. Created: Mon 04/29/2019  8:11:02.485 PM
+    % $Revision: 1.1 $  $Date: Thu 02/06/2020  9:38:02.009 AM $
     %
     % 1026 Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -52,14 +52,9 @@ classdef MultiscaleElectrophysiologyFile_2p1 < handle
     % MEF file info
     % -------------
     properties (SetAccess = protected, Hidden = true)
-        FilePath        % [str] filepath of MEF file
-        FileName        % [str] filename of MEF file including ext (.mef)
         SubjectPassword % [str] subject password of MEF file
         SessionPassword % [str] session password of MEF file
         DataPassword    % [str] data password of MEF file
-        Header          % [struct] header information of MEF file
-        BlockIndexData  % [table] data of block indices
-        Continuity      % [table] data segments of conituous sampling
     end % properties
     
     % =====================================================================
@@ -103,6 +98,15 @@ classdef MultiscaleElectrophysiologyFile_2p1 < handle
             
             % operations during construction
             % ------------------------------
+            % set MEF version to serve
+            if isempty(this.MEFVersion) == true
+                this.MEFVersion = 2.1;
+            elseif this.MEFVersion ~= 2.1
+                error('MultiscaleElectrophysiologyFiel_2p1:invalidMEFVer',...
+                    'invalid MEF version; this function can serve only MEF 2.1')
+            end % if
+            
+            % set channel info
             if ~isempty(q)
                 this.FilePath = q.filepath;
                 this.FileName = q.filename;
@@ -117,9 +121,9 @@ classdef MultiscaleElectrophysiologyFile_2p1 < handle
                 % check version
                 mef_ver = sprintf('%d.%d', this.Header.header_version_major,...
                     this.Header.header_version_minor);
-                if strcmp(mef_ver, '2.1') == false
-                    warning('The MEF file is compressed with MEF format version %s, rather than 2.1. The results may be unpredictable',...
-                        mef_ver)
+                if str2double(mef_ver) ~= this.MEFVersion
+                    warning('The MEF file is compressed with MEF format version %s, rather than %0.1f. The results may be unpredictable',...
+                        mef_ver, this.MEFVersion)
                 end % if
                 
                 % refresh session password from header
@@ -141,15 +145,11 @@ classdef MultiscaleElectrophysiologyFile_2p1 < handle
         bid = readBlockIndexData(this, varargin) % read block indices
         blk_header = readBlockHeader(this, BlockIndex) % read block header
         seg_cont = analyzeContinuity(this, varargin) % analyze continuity of data sampling
-        [sample_index, sample_yn] = SampleTime2Index(this, varargin) % time --> index
-        [sample_time, sample_yn] = SampleIndex2Time(this, varargin) % index --> time
         [x, t] = importSignal(this, varargin) % import MEF signal into MATLAB
         this = setSubjectPassword(this, password) % set MEF subject password
         this = setSessionPassword(this, password) % set MEF session password
         this = setDataPassword(this, password) % set MEF data password
-        this = setContinuity(this, cont_table) % set Continuity table
         event_table = getMAFEvent(this, maf_file) % get event table from MAF
-        out_time = SampleUnitConvert(this, in_time, varargin) % convert units of time points
     end % methods
 end % classdef
 

@@ -1,5 +1,5 @@
 function seg_cont = analyzeContinuity(this, varargin)
-% ANALYZECONTINUITY Analyze continuity of sampling in the data file
+% MULTISCALEELECTROPHYSIOLOGYFILE_2P1.ANALYZECONTINUITY Analyze continuity of sampling in MEF 2.1 data
 % 
 % Syntax:
 %   seg_cont = analyzeContinuity(this)
@@ -34,14 +34,17 @@ function seg_cont = analyzeContinuity(this, varargin)
 % 
 % See also .
 
-% Copyright 2019 Richard J. Cui. Created: Sat 05/04/2019 10:35:40.540 PM
-% $Revision: 0.2 $  $Date: Mon 05/20/2019  3:30:28.116 PM $
+% Copyright 2019-2020 Richard J. Cui. Created: Sat 05/04/2019 10:35:40.540 PM
+% $Revision: 0.4 $  $Date: Sun 02/09/2020 10:40:13.746 AM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
 %
 % Email: richard.cui@utoronto.ca
 
+% =========================================================================
+% parse inputs
+% =========================================================================
 q = parseInputs(this, varargin{:});
 
 if isempty(q)
@@ -100,7 +103,7 @@ bid = this.BlockIndexData;
 fs = header.sampling_frequency;
 MPS = 1e6; % microseconds per second
 wh = waitbar(0,'Analyzing signal continuity...');
-fprintf('Analyzing signal continuity...\n')
+fprintf('Analyzing signal continuity...')
 for k = 1:num_seg_cont
     waitbar(k/num_seg_cont)
     
@@ -123,7 +126,7 @@ for k = 1:num_seg_cont
     % segment length
     seg_cont.SegmentLength(k) = seg_cont.SampleIndexEnd(k)-seg_cont.SampleIndexStart(k)+1;
 end % for
-fprintf('Done\n')
+fprintf('Done!\n')
 close(wh)
 
 this.Continuity = seg_cont;

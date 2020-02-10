@@ -23,7 +23,7 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 % See also .
 
 % Copyright 2019-2020 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 1.5 $  $Date: MFri 01/17/2020  3:38:03.893 PM $
+% $Revision: 1.6 $  $Date: Sun 02/09/2020  9:52:10.999 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -52,7 +52,7 @@ addpath(genpath(fpath)) % add all subdirectories into matlab paths
 menu_import_mef = findobj(fig, 'tag', 'import data');
 
 % menu callback
-mef_imp_2p1 = [try_strings.no_check, 'EEG = pop_mefimport_2p1(EEG);',...
+mef_imp_2p1 = [try_strings.no_check, 'EEG = pop_mefimport(EEG);',...
     catch_strings.new_and_hist];
 
 % create menus in EEGLab
@@ -67,7 +67,8 @@ uimenu(menu_from_mayo, 'label', 'MEF 3.0');
 impeventmenu = findobj(fig, 'tag', 'import event');
 
 % menu callback
-maf_imp = [try_strings.no_check, 'EEG = pop_mafimport(EEG);',...
+maf_imp = [try_strings.no_check,...
+    'EEG = pop_mafimport(EEG, ''MEFVersion'', 2.1);',...
     catch_strings.new_and_hist];
 
 % create menu in EEGLAB

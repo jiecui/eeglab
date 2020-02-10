@@ -6,7 +6,7 @@ function header = readHeader(this, varargin)
 %   header = readHeader(this, wholename)
 %   header = readHeader(this, wholename, password)
 % 
-% Imput(s):
+% Input(s):
 %   this            - [obj] MultiscaleElectrophysiologyFile object
 %   wholename       - [str] filepath + filename of MEF file
 %   password        - [str] password of the data
@@ -144,7 +144,7 @@ function header = readHeader(this, varargin)
 % See also .
 
 % Copyright 2019-2020 Richard J. Cui. Created: Mon 04/29/2019 10:33:58.517 PM
-% $Revision: 0.6 $  $Date: Thu 01/16/2020 10:50:40.905 PM $
+% $Revision: 0.7 $  $Date: Tue 02/04/2020 12:04:38.033 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -159,10 +159,10 @@ if isempty(q)
 else
     wholename = fullfile(q.filepath, q.filename);
     pw = q.password;
-    % update
+    % TODO: update
     this.FilePath = q.filepath;
     this.FileName = q.filename;
-    this.SubjectPassword = q.password;
+    this.SubjectPassword = q.password; % this is not correct
 end % if
 
 header = read_mef_header_2p1(wholename, pw);

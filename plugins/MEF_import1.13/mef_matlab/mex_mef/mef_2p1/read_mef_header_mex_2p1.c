@@ -14,13 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 // 
-// mex -output read_mef_header read_mef_header_mex.c mef_lib.c
+// mex -output read_mef_header_2p1 read_mef_header_mex_2p1.c mef_lib_2p1.c
 //
 */
 
 /* 
  modified by Richard J. Cui.
- $Revision: 0.3 $  $Date: Thu 01/09/2020  3:50:49.575 PM $
+ $Revision: 0.4 $  $Date: Thu 01/30/2020 12:05:46.465 AM $
 
  1026 Rocky Creek Dr NE
  Rochester, MN 55906, USA
@@ -52,7 +52,7 @@ int read_mef_header(char *f_name, MEF_HEADER_INFO *hdr_info, char *password)
 	c = (char *) &cpu_endianness;
 	cpu_endianness = (unsigned int) *c;
 	if (cpu_endianness != LITTLE_ENDIAN_CODE) {
-		mexErrMsgTxt("[read_mef_header] is currently only compatible with little-endian machines => exiting");
+		mexErrMsgTxt("[read_mef_header_2p1] is currently only compatible with little-endian machines => exiting");
 		return(1);
 	}
 	
@@ -65,20 +65,20 @@ int read_mef_header(char *f_name, MEF_HEADER_INFO *hdr_info, char *password)
 	header = (unsigned char *) malloc(MEF_HEADER_LENGTH);  // malloc to ensure boundary alignment
 	n_read = fread((void *) header, sizeof(char), (size_t) MEF_HEADER_LENGTH, fp);
 	if (n_read != MEF_HEADER_LENGTH) {
-		printf("[read_mef_header] error reading the file \"%s\" => exiting\n",  f_name);
+		printf("[read_mef_header_2p1] error reading the file \"%s\" => exiting\n",  f_name);
 		return(1);
 	}
     fclose(fp);
     
 	if ((read_mef_header_block(header, hdr_info, password))) {
-		printf("[read_mef_header] header read error for file \"%s\" => exiting\n", f_name);
+		printf("[read_mef_header_2p1] header read error for file \"%s\" => exiting\n", f_name);
 		return(1);		
 	}
 	free(header); header=NULL;
 	
 	/* get file endianness */
 	if (hdr_info->byte_order_code != LITTLE_ENDIAN_CODE) {
-		mexErrMsgTxt("[read_mef_header] is currently only compatible with little-endian files (file \"%s\") => exiting");
+		mexErrMsgTxt("[read_mef_header_2p1] is currently only compatible with little-endian files (file \"%s\") => exiting");
 		return(1);
 	}
    
@@ -148,45 +148,45 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	//  Check for proper number of arguments 
 	if (nrhs != 2) 
-		mexErrMsgTxt("[read_mef_header] two inputs required: file_name, password");
+		mexErrMsgTxt("[read_mef_header_2p1] two inputs required: file_name, password");
 	if (nlhs != 1) 
-		mexErrMsgTxt("[read_mef_header] one output required: header_structure");
+		mexErrMsgTxt("[read_mef_header_2p1] one output required: header_structure");
 	
 	// get the input file name (argument 1)
 	if (mxIsChar(prhs[0]) != 1) { // Check to make sure the first input argument is a string 
-		mexErrMsgTxt("[read_mef_header] file name must be a string => exiting");
+		mexErrMsgTxt("[read_mef_header_2p1] file name must be a string => exiting");
 		return;
 	}		
 	buf_len = (mxGetM(prhs[0]) * mxGetN(prhs[0])) + 2; // Get the length of the input string 
 	f_name = malloc(buf_len); // Allocate memory for file_name string
 	status = mxGetString(prhs[0], f_name, buf_len);
 	if (status != 0) {
-		mexWarnMsgTxt("[read_mef_header] not enough space for input file name string => exiting");
+		mexWarnMsgTxt("[read_mef_header_2p1] not enough space for input file name string => exiting");
 		return;
 	}
 	
    //check for compile with correct datatype definitions
     if (sizeof(ui8) != 8 || sizeof(si8) !=8) {
-        mexErrMsgTxt("[read_mef_header] Warning: MEX function was not compiled with 8-byte integers. Incorrect information is probable.");
+        mexErrMsgTxt("[read_mef_header_2p1] Warning: MEX function was not compiled with 8-byte integers. Incorrect information is probable.");
     }
 
 	// get the password (argument 2)
 	if (mxIsChar(prhs[1]) != 1) { // Check to make sure the fourth input argument is a string 
-		mexErrMsgTxt("[read_mef_header] Password must be a stringx => exiting");
+		mexErrMsgTxt("[read_mef_header_2p1] Password must be a stringx => exiting");
 		return;
 	}	
 	buf_len = (mxGetM(prhs[1]) * mxGetN(prhs[1])) + 2; // Get the length of the input string 
 	password = malloc(buf_len); // Allocate memory for file_name string
 	status = mxGetString(prhs[1], password, buf_len);
 	if (status != 0) {
-		mexErrMsgTxt("[read_mef_header] not enough space for password string => exiting");
+		mexErrMsgTxt("[read_mef_header_2p1] not enough space for password string => exiting");
 		return;
 	}
 
 	// Set the output pointer to the output matrix. 
 	hdr_struct_len = sizeof(MEF_HEADER_INFO);
 	if (hdr_struct_len >= (unsigned long long int) (1 << 31)) {
-		mexErrMsgTxt("[read_mef_header] requested memory exceeds Matlab limit => exiting");
+		mexErrMsgTxt("[read_mef_header_2p1] requested memory exceeds Matlab limit => exiting");
 		return;
 	}	
 	
@@ -198,7 +198,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if(rtn_val) {//header read failed. Don't return anything
         free(password); password=NULL;
         free(f_name); f_name=NULL;
-		mexErrMsgTxt("[read_mef_header] Error reading file header => exiting");
+		mexErrMsgTxt("[read_mef_header_2p1] Error reading file header => exiting");
         return;
     }
 	

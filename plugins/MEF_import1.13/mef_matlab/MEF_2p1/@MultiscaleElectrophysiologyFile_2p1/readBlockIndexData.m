@@ -1,5 +1,5 @@
 function bid = readBlockIndexData(this, varargin)
-% READBLOCKINDEXDATA Read Block Index Data from MEF file
+% MULTISCALEELECTROPHYSIOLOGYFILE_2P1.READBLOCKINDEXDATA Read Block Index Data from MEF 2.1 file
 % 
 % Syntax:
 %   bid = readBlockIndexData(this)
@@ -7,7 +7,7 @@ function bid = readBlockIndexData(this, varargin)
 %   bid = readBlockIndexData(this, wholename, password)
 % 
 % Imput(s):
-%   this            - [obj] MultiscaleElectrophysiologyFile object
+%   this            - [obj] MultiscaleElectrophysiologyFile_2p1 object
 %   wholename       - [str] filepath + filename of MEF file
 %   password        - [str] password of the data
 % 
@@ -30,8 +30,8 @@ function bid = readBlockIndexData(this, varargin)
 % 
 % See also .
 
-% Copyright 2019 Richard J. Cui. Created: Tue 04/30/2019 10:11:41.380 PM
-% $Revision: 0.2 $  $Date: Mon 05/20/2019  3:25:26.086 PM $
+% Copyright 2019-2020 Richard J. Cui. Created: Tue 04/30/2019 10:11:41.380 PM
+% $Revision: 0.3 $  $Date: Wed 02/05/2020 10:38:49.323 AM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
