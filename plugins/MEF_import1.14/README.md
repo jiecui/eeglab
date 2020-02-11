@@ -42,7 +42,7 @@ Then choose 'MEF 2.1' to import MEF 2.1 format data, or choose 'MEF 3.0' to impo
 
 *Input signal using MATLAB commandline*
 
-The following code is an example to import a segment of MEF 3.0 signal into MATLAB and plot it:
+The following code is an example to import a segment of MEF 3.0 signal into MATLAB/EEGLAB and plot it (after launch EEGLab):
 
 ```matlab
 mer_ver = 3.0; % MEF version
