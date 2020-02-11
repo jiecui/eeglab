@@ -36,7 +36,7 @@ function varargout = get_sessinfo(this)
 % See also MEFSession_2p1, get_info_data.
 
 % Copyright 2020 Richard J. Cui. Created: Fri 01/03/2020  4:19:10.683 PM
-% $ Revision: 0.5 $  $ Date: Sat 02/08/2020 10:11:35.784 PM $
+% $ Revision: 0.6 $  $ Date: Tue 02/11/2020  1:02:34.224 AM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -115,7 +115,7 @@ if set_empty == true
         'subj_id', '',...
         'acq_sys', '',...
         'comp_alg', '',...
-        'sess_info', strct([]),...
+        'sess_info', struct([]),...
         'cont', table([]));
 else
     si_value.channame = sess_info.ChannelName';
