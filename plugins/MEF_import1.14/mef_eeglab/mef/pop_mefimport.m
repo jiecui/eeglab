@@ -22,7 +22,8 @@ function [EEG, com] = pop_mefimport(EEG, varargin)
 %                     the file (default: the entire signal)
 %   unit            - [str] (optional) unit of start_end: 'uUTC' (default), 'Index',
 %                     'Second', 'Minute', 'Hour', and 'Day'
-%   pw              - [strct] (opt) password
+%   pw              - [strct] (opt) password structure depending on MEF
+%                     version
 % 
 % Outputs:
 %   EEG             - [struct] EEGLab dataset structure. See Note for
@@ -47,7 +48,7 @@ function [EEG, com] = pop_mefimport(EEG, varargin)
 % See also EEGLAB, mefimport.
 
 % Copyright 2019-2020 Richard J. Cui. Created: Tue 05/07/2019 10:33:48.169 PM
-% $Revision: 1.5 $  $Date: Sun 02/09/2020  7:10:31.928 PM $
+% $Revision: 1.6 $  $Date: Mon 02/10/2020  9:48:02.611 PM $
 %
 % 1026 Rocky Creek Dr NE
 % Rochester, MN 55906, USA
