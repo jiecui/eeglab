@@ -1,42 +1,76 @@
+MEF 2.1 And 3.0 EEGLAB Plugin MEF_import (Ver 1.14)
+===================================================
 
+**MEF_import** is an EEGLAB plugin that imports data compressed in Multiscale Electrophysiology Format (or Mayo EEG File, MEF, see below) and Multiscale Annotation File (MAF) data into [EEGLAB](https://sccn.ucsd.edu/eeglab/index.php).
+Current version can import [MEF/MAF Version 2.1](https://github.com/benbrinkmann/mef_lib_2_1) and [MEF 3.0](https://msel.mayo.edu/codes.html) files.
+Moreover, the functions provided in the folder "mef_matlab" can be used as a general tool to import MEF data into MATLAB.
 
-# What is EEGLAB?
-EEGLAB is an open source signal processing environment for electrophysiological signals running on Matlab and Octave (command line only for Octave). This folder contains original Matlab functions from the EEGLAB (formerly ICA/EEG) Matlab toolbox, all released under the Gnu public license (see eeglablicence.txt). See the EEGLAB tutorial and reference paper (URLs given below) for more information.
+The code repository for **MEF_import** is hosted on GitHub at https://github.com/jiecui/MEF_import.
 
-# Instaling/cloning
-**Recommended:** Download the official EEGLAB release from https://sccn.ucsd.edu/eeglab/download.php
+Installation
+------------
+1. Download, decompress and copy the directory into the directory of plugins of EEGLAB (/root/directory/of/eeglab/plugins)
+1. Rename the directory of the plugin to MEF_import1.14
+1. Launch EEGLAB in MATLAB, for example,
 
-**Do not download a ZIP file directly from GIT as it will not contain EEGLAB submodules**. Instead clone the reposity while pulling EEGLAB sub-modules.
+        >> eeglab
+1. Follow the instructions on the screen
 
-git clone --recurse-submodules https://github.com/sccn/eeglab.git
-
-If you forgot to clone the submodule, go to the eeglab folder and type
-
-git submodule update --init --recursive --remote
-
-# Sub-directories:
-
- - /functions - All distributed EEGLAB functions (admin, sigproc, pop, misc)
- - /plugins   - Directory to place all downloaded EEGLAB plug-ins. dipfit (1.0) is present by default
- - /sample_data -  Miscellaneous EEGLAB data using in tutorials and references
- - /sample_locs -  Miscellaneous standard channel location files (10-10, 10-20). See the EEGLAB web site http://sccn.ucsd.edu/eeglab/ for more.
-
-# To use EEGLAB: 
-
-1. Place the Matlab functions in a directory ($DIR) and add $DIR/eeglabxx to (Unix) your matlabpath environment variable. 
-   Else, within Matlab >> addpath('full_path_here')
-
-2. Optional: Edit file "icadefs.m" which specifies various limits and constants used in EEGLAB functions.
-
-3. Then start Matlab and type >> eeglab
-
-4. Open the main EEGLAB tutorial page (your downloaded "eeglabtut.html",
-   else browse http://sccn.ucsd.edu/wiki/EEGLAB_Wiki)
-
-5. Please send feedback and suggestions to: eeglab@sccn.ucsd.edu
-
-# In publications, please reference:
-
-Delorme, A., & Makeig, S. (2004). EEGLAB: an open source toolbox for analysis of single-trial EEG dynamics including independent component analysis. Journal of neuroscience methods, 134(1), 9-21. (See article [here](http://sccn.ucsd.edu/eeglab/download/eeglab_jnm03.pdf))
+Mex file
+--------
+Several mex files are required to read MEF data.
+After launch EEGLAB, run 'make_mex_mef.m' to build the mex files for different operating systems.
  
-Consider contributing to your functions and creativity to EEGLAB open source development (see http://sccn.ucsd.edu/wiki/EEGLAB_Wiki for more details).
+Data samples
+------------
+1. Put all the MEF files for different channels/electrodes of a single recording session into a single directory. 
+1. A data sample, 'sample_mef' folder, is included in the package (/root/directory/of/eeglab/plugins/MEF_import1.14/sample_mef).
+Two data samples are included as subdirectories: 'mef_2p1' and 'mef_3p0'.
+1. The directory 'mef_2p1' includes the session of MEF 2.1 signal (passwords: 'erlichda' for Subject password; 'sieve' for Session password; no password required for Data password).
+1. The directory 'mef_3p0' includes the session of MEF 3.0 signal (level 1 password: password1; level 2 passowrd: password2; access level: 2).
+
+Input MEF data
+--------------
+*Input signal using GUI*
+
+1. From EEGLAB GUI, select File > Import Data > Using EEGLAB functions and plugins > From Mayo Clinic .mef. 
+Then choose 'MEF 2.1' to import MEF 2.1 format data, or choose 'MEF 3.0' to import MEF 3.0 data.
+1. If passwords are required, click "Set Passwords" to input the passwords.
+1. Select the folder of the dataset.  A list of available channel is shown in the table below.
+1. Choose part of the signal to import if needed.
+1. Discontinuity of recording is marked as event 'Discont'.
+
+*Input signal using MATLAB commandline*
+
+The following code is an example to import a segment of MEF 3.0 signal into MATLAB/EEGLAB and plot it (after launch EEGLab):
+
+```matlab
+mef_ver = 3.0; % MEF version
+sess_path = '/root/directory/of/eeglab/plugins/MEF_import1.14/sample_mef/mef_3p0'; % MEF 3.0 session path
+sel_chan = ["left_central-ref", "Left_Occipital-Ref", "Left-Right_Central", "left-right_occipital"]; % selected channels
+start_end = [0, 10]; % start and end time point of signal segment
+unit = 'second'; % time point unit
+password = struct('Level1Password', 'password1', 'Level2Password', 'password2', 'AccessLevel', 2); % password structure for MEF 3.0 sample data
+EEG = pop_mefimport(EEG, mef_ver, sess_path, sel_chan, start_end, unit, password); % import the signal into EEGLAB
+pop_eegplot_w(EEG); % plot the signal
+```
+
+Input MAF data
+--------------
+From EEGLAB GUI, select File > Import event info > From Mayo Clinic .maf > MEF 2.1
+
+Currently, the importer can only recognize events of seizure onset and seizure offset.
+
+Credit
+------
+Multiscale Electrophysiology Format (MEF) is a novel electrophysiology file format designed for large-scale storage of electrophysiological recordings.
+MEF can achieve significant data size reduction when compared to existing techniques with stat-of-the-art lossless data compression.
+It satisfies the Health Insurance Portability and Accountability Act (HIPAA) to encrypt any patient protected health information transmitted over a public network.
+The details of MEF file can be found at https://www.mayo.edu/research/labs/epilepsy-neurophysiology/mef-example-source-code from [Mayo Systems Electrophysiology Lab](http://msel.mayo.edu/) and on [International Epilepsy Portal](https://main.ieeg.org): https://main.ieeg.org/?q=node/28. 
+
+The c-mex code to read MEF 2.1 data is mainly developed from the work done by Ben Brinkmann, Matt Stead, and Dan Crepeau from [Mayo Systems Electrophysiology Lab](https://msel.mayo.edu/codes.html),  Mayo Clinic, Rochester MN (https://github.com/benbrinkmann/mef_lib_2_1).
+The c-mex code for MEF 3.0 is mainly adapted from the work by Max van den Boom and Dora Hermes Miller at Multimodal Neuroimaging Lab, Mayo Clinic, Rochester MN (https://github.com/MaxvandenBoom/matmef).
+
+License
+-------
+**MEF_import** is protected by the GPL v3 Open Source License.
