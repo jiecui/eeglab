@@ -20,6 +20,7 @@ Mex file
 --------
 Several mex files are required to read MEF data.
 After launch EEGLAB, run 'make_mex_mef.m' to build the mex files for different operating systems.
+The binary files for Mac-64bits are provided with the release, compiled by using Xcode with Clang.
  
 Data samples
 ------------
@@ -45,14 +46,35 @@ Then choose 'MEF 2.1' to import MEF 2.1 format data, or choose 'MEF 3.0' to impo
 The following code is an example to import a segment of MEF 3.0 signal into MATLAB/EEGLAB and plot it (after launch EEGLab):
 
 ```matlab
-mef_ver = 3.0; % MEF version
-sess_path = '/root/directory/of/eeglab/plugins/MEF_import1.14/sample_mef/mef_3p0'; % MEF 3.0 session path
-sel_chan = ["left_central-ref", "Left_Occipital-Ref", "Left-Right_Central", "left-right_occipital"]; % selected channels
-start_end = [0, 10]; % start and end time point of signal segment
-unit = 'second'; % time point unit
-password = struct('Level1Password', 'password1', 'Level2Password', 'password2', 'AccessLevel', 2); % password structure for MEF 3.0 sample data
-EEG = pop_mefimport(EEG, mef_ver, sess_path, sel_chan, start_end, unit, password); % import the signal into EEGLAB
-pop_eegplot_w(EEG); % plot the signal
+% set MEF version
+mef_ver = 3.0; 
+
+% set the session path
+% please replace the root directory of eeglab with the directory on your system
+sess_path = '/root/directory/of/eeglab/plugins/MEF_import1.14/sample_mef/mef_3p0';
+
+% select channels
+% the type of the variable of the selected channels is string array
+sel_chan = ["left_central-ref", "Left_Occipital-Ref", "Left-Right_Central", "left-right_occipital"]; 
+
+% set the start and end time point of signal segment
+% this is a relative time point. the time of signal starts at 0 and the 1st sample index is 1.
+start_end = [0, 10]; 
+
+% set the unit of time point 
+% in this example, we will import the signal from 0 second to 10 second
+unit = 'second'; 
+
+% set the password structure for MEF 3.0 sample data
+password = struct('Level1Password', 'password1', 'Level2Password', 'password2', 'AccessLevel', 2); 
+
+% import the signal into EEGLAB
+% the variable 'EEG' is set by EEGLAB
+% or you may create an empty one by using command 'EEG = eeg_empty();'
+EEG = pop_mefimport(EEG, mef_ver, sess_path, sel_chan, start_end, unit, password); 
+
+% plot the signal
+pop_eegplot_w(EEG, 1, 0, 1); 
 ```
 
 Input MAF data
