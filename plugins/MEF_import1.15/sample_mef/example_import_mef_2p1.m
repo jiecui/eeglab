@@ -1,9 +1,9 @@
-% EXAMPLE_IMPORT_MEF_3P0 an example to import MEF 3.0 data
+% EXAMPLE_IMPORT_MEF_2P1 an example to import MEF 2.1 data
 % 
 % Syntax:
-%   example_import_mef_3p0
+%   example_import_mef_2p1
 % 
-% See also example_import_mef_2p1.
+% See also example_import_mef_3p0.
 
 % Copyright 2020 Richard J. Cui. Adapted: Wed 02/12/2020  3:31:26.134 PM
 % $Revision: 0.1 $  $Date: Wed 02/12/2020  3:31:26.134 PM $
@@ -15,18 +15,17 @@
 
 % Set MEF version
 % ---------------
-mef_ver = 3.0;
+mef_ver = 2.1;
  
 % Set the session path
 % --------------------
 sample_data_folder = fileparts(mfilename("fullpath"));
-sess_path = fullfile(sample_data_folder, 'mef_3p0');
+sess_path = fullfile(sample_data_folder, 'mef_2p1');
 
 % select channels
 % ---------------
 % the type of the variable of the selected channels is string array
-sel_chan = ["left_central-ref", "Left_Occipital-Ref",...
-    "Left-Right_Central", "left-right_occipital"]; 
+sel_chan = ["B_1", "D_1", "F_1", "S_1"]; 
 
 % set the start and end time point of signal segment
 % --------------------------------------------------
@@ -40,8 +39,7 @@ start_end = [0, 10];
 unit = 'second'; 
 
 % set the password structure for MEF 3.0 sample data
-password = struct('Level1Password', 'password1', 'Level2Password',...
-    'password2', 'AccessLevel', 2); 
+password = struct('Subject', 'erlichda', 'Session', 'sieve', 'Data', ''); 
 
 % import the signal into EEGLAB
 % -----------------------------
