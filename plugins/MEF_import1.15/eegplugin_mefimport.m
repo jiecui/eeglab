@@ -32,7 +32,7 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 
 % version info
 % ------------
-vers='MEF_import1.14';
+vers='MEF_import1.15';
 
 % parse inputs
 % ------------
