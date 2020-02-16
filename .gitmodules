@@ -11,5 +11,5 @@
 	path = plugins/ICLabel
 	url = https://github.com/sccn/ICLabel
 [submodule "plugins/MEF_import1.15"]
-	path = plugins/MEF_import1.15
+	path = plugins/MEF_import1.16
 	url = https://github.com/jiecui/MEF_import
