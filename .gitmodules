@@ -13,3 +13,6 @@
 [submodule "plugins/MEF_import"]
 	path = plugins/MEF_import1.16
 	url = https://github.com/jiecui/MEF_import
+[submodule "plugins/bids-matlab-tools"]
+	path = plugins/bids-matlab-tools
+	url = https://github.com/sccn/bids-matlab-tools
