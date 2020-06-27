@@ -24,6 +24,7 @@
 %
 % Usage: 1) To (re)start EEGLAB, type
 %            >> eeglab           % Ignores any loaded datasets
+%            >> eeglab nogui     % Do not pop up GUI
 %        2) To redaw and update the EEGLAB interface, type
 %            >> eeglab redraw    % Scans for non-empty datasets
 %            >> eeglab rebuild   % Closes and rebuilds the EEGLAB window
@@ -384,7 +385,6 @@ if nargin == 1
         disp( [ 'EEGLAB v' eeg_getversion ] );
 	elseif strcmp(onearg, 'nogui')
         if nargout < 1, clear ALLEEG; end % do not return output var
-        return;
 	elseif strcmp(onearg, 'redraw')
 		W_MAIN = findobj('tag', 'EEGLAB');
 		if ~isempty(W_MAIN)
@@ -485,6 +485,7 @@ trystrs.check_epoch_ica          = checkepochica;
 trystrs.check_chanlocs           = checkplot;
 trystrs.check_epoch_chanlocs     = checkepochplot;
 trystrs.check_epoch_ica_chanlocs = checkepochicaplot;
+trystrs.check_ica_chanlocs       = checkicaplot;
 catchstrs.add_to_hist            = e_hist;
 catchstrs.store_and_hist         = e_store;
 catchstrs.new_and_hist           = e_newset;
@@ -494,7 +495,7 @@ catchstrs.load_study             = e_load_study;
 
 % create eeglab figure
 % --------------------
-if ismatlab
+if ismatlab && ~strcmpi(onearg, 'nogui')
     eeg_mainfig(onearg);
 end
 
@@ -539,7 +540,7 @@ cb_study1      = [ nocheck 'pop_stdwarn; [STUDYTMP ALLEEGTMP LASTCOM] = pop_stud
 cb_study2      = [ nocheck 'pop_stdwarn; [STUDYTMP ALLEEGTMP LASTCOM] = pop_study([], isempty(ALLEEG), ''gui'', ''on'');' e_load_study]; 
 cb_studyerp    = [ nocheck 'pop_stdwarn; [STUDYTMP ALLEEGTMP LASTCOM] = pop_studyerp;' e_load_study]; 
 cb_loadstudy   = [ nocheck 'pop_stdwarn; [STUDYTMP ALLEEGTMP LASTCOM] = pop_loadstudy; if ~isempty(LASTCOM), STUDYTMP = std_renamestudyfiles(STUDYTMP, ALLEEGTMP); end;' e_load_study]; 
-cb_savestudy1  = [ check   '[STUDYTMP ALLEEGTMP LASTCOM] = pop_savestudy(STUDY, EEG, ''savemode'', ''resave'');'      e_load_study];
+cb_savestudy1  = [ check   '[STUDYTMP ALLEEGTMP LASTCOM] = pop_savestudy(STUDY, EEG, ''savemode'', ''resavegui'');'      e_load_study];
 cb_savestudy2  = [ check   '[STUDYTMP ALLEEGTMP LASTCOM] = pop_savestudy(STUDY, EEG);'                                e_load_study];
 cb_clearstudy  =           'LASTCOM = ''STUDY = []; CURRENTSTUDY = 0; ALLEEG = []; EEG=[]; CURRENTSET=[];''; eval(LASTCOM); eegh( LASTCOM ); eeglab redraw;';
 cb_editoptions = [ nocheck 'if isfield(ALLEEG, ''nbchan''), LASTCOM = pop_editoptions(length([ ALLEEG.nbchan ]) >1);' ...
@@ -679,7 +680,7 @@ onchannel   = 'startup:off;chanloc:on';
 onepochchan = 'startup:off;continuous:off;chanloc:on';
 onstudy     = 'startup:off;epoch:off;continuous:off;study:on';
 
-if ismatlab
+if ismatlab && ~strcmpi(onearg, 'nogui')
     W_MAIN = findobj('tag', 'EEGLAB');
     EEGUSERDAT = get(W_MAIN, 'userdata');
     set(W_MAIN, 'MenuBar', 'none');
@@ -911,7 +912,11 @@ else
     pluginstats = [];
 	if option_checkversion && ismatlab
         disp('Retrieving plugin versions from server...');
-        pluginTmp = plugin_getweb('', pluginlist, 'newlist');
+        try
+            pluginTmp = plugin_getweb('', pluginlist, 'newlist');
+        catch
+            disp('Issue with retrieving statistics for extensions');
+        end
         if ~isempty(pluginTmp) && isfield(pluginTmp, 'name') && isfield(pluginTmp, 'version')
             pluginstats.name    = { pluginTmp.name };
             pluginstats.version = { pluginTmp.version };
@@ -980,17 +985,19 @@ else
                 pluginlist(plugincount).version    = pluginVersion;
                 vers2  = '';
                 status = 'ok';
-                try
-                    %eval( [ 'vers2 =' funcname '(gcf, trystrs, catchstrs);' ]);
-                    vers2 = feval(funcname, gcf, trystrs, catchstrs);
-                    [~, vers2] = parsepluginname(vers2);
-                catch
+                if ~strcmpi(onearg, 'nogui')
                     try
-                        eval( [ funcname '(gcf, trystrs, catchstrs)' ]);
+                        %eval( [ 'vers2 =' funcname '(gcf, trystrs, catchstrs);' ]);
+                        vers2 = feval(funcname, gcf, trystrs, catchstrs);
+                        [~, vers2] = parsepluginname(vers2);
                     catch
-                        disp([ 'EEGLAB: error while adding plugin "' funcname '"' ] ); 
-                        disp([ '   ' lasterr] );
-                        status = 'error';
+                        try
+                            eval( [ funcname '(gcf, trystrs, catchstrs)' ]);
+                        catch
+                            disp([ 'EEGLAB: error while adding plugin "' funcname '"' ] ); 
+                            disp([ '   ' lasterr] );
+                            status = 'error';
+                        end
                     end
                 end
                 if isempty(pluginlist(plugincount).version)
@@ -1011,7 +1018,7 @@ else
                     fprintf('EEGLAB: adding "%s" v%s (see >> help %s)', ...
                         pluginlist(plugincount).plugin, vers, funcname);
                     if ~isempty(pluginstats)
-                        indPlugin = strmatch(pluginlist(plugincount).plugin, pluginstats.name, 'exact');
+                        indPlugin = strmatch(lower(pluginlist(plugincount).plugin), lower(pluginstats.name), 'exact');
                         if length(indPlugin) == 1
                             if ~strcmpi(vers, pluginstats.version{indPlugin})
                                 fprintf(2, ' - new version %s available\n', pluginstats.version{indPlugin});
@@ -1032,7 +1039,7 @@ else
     
     % add menus for plugins to install
     % --------------------------------
-    if ismatlab
+    if ismatlab && ~strcmpi(onearg, 'nogui')
         if ~exist('mff_import', 'file')
             neuro_m = findobj(W_MAIN, 'tag', 'import data');
             cb_mff = [ 'if ~plugin_askinstall(''mffmatlabio'', ''mff_import''), return; end;' ...
@@ -1076,10 +1083,6 @@ else
     end
 end
 
-if ~ismatlab
-    return;
-end
-
 % Path exception for BIOSIG (sending BIOSIG down into the path)
 biosigpathlast; % fix str2double issue
 
@@ -1088,6 +1091,10 @@ dipplotpath = fileparts( which('dipplot') );
 dipfitpath  = fileparts( which('dipfit_1_to_2') );
 if ~strcmp(dipplotpath,dipfitpath)
     addpath(dipfitpath,'-begin');
+end
+
+if ~ismatlab || strcmpi(onearg, 'nogui')
+    return;
 end
 
 % add other import ...
@@ -1155,7 +1162,6 @@ WINMAXX         = 260;
 WINYDEC			= 13;
 NBLINES         = 16;
 WINY		    = WINYDEC*NBLINES;
-javaChatFlag    = 1;
 
 BORDERINT       = 4;
 BORDEREXT       = 10;
@@ -1824,7 +1830,7 @@ else
 	set( g.mainwin6, 'String', '  "Edit > Channel locations" (look up locations)');
 	set( g.mainwin7, 'String', '  "File > Import event info" (for continuous data)');
 	set( g.mainwin8, 'String', '- Filter data: "Tools > Filter data"');
-	set( g.mainwin9, 'String', '- Reject data: "Tools > Reject continuous data"');
+	set( g.mainwin9, 'String', '- Reject data: "Tools > Reject data by eye"');
 	set( g.mainwin10,'String', '- Run ICA: "Tools > Run ICA" (can take time)');
 	set( g.mainwin11,'String', '- Reject by ICA: "Tools > Reject data using ICA"');
 	set( g.mainwin12,'String', '- Epoch data: "Tools > Extract epochs"');

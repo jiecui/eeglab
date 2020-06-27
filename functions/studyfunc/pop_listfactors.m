@@ -1,11 +1,11 @@
 % pop_listfactors() - list independent variables factors for a given design
 %
-% Usage:  
+% Usage:
 %  >> factors = pop_listfactors(STUDY);
 %  >> factors = pop_listfactors(des);
 %
 % Inputs:
-%   STUDY   - existing study structure. 
+%   STUDY   - existing study structure.
 %   des     - existing design
 %
 % Optional Inputs:
@@ -14,9 +14,11 @@
 %                  factors. Default is 'off'.
 %   'interaction' - ['on'|'off'] compute interaction when using different
 %                  categorical variables. This allows computing interactions
-%                  between these variables at the second level. Default 
+%                  between these variables at the second level. Default
 %                  is 'off'.
-% 
+%   'level'       - ['one'|'two'|'both'] get only first level or second
+%                  level factors. Default is 'both'.
+%
 % Author: Arnaud Delorme, UCSD, 2018
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, arno@salk.edu
@@ -50,11 +52,12 @@ function allFactorsStruct = pop_listfactors(des, varargin)
 
 if nargin < 1
     help pop_listfactors;
-end 
+end
 
 g = finputcheck(varargin, { 'gui'         'string' { 'on' 'off' } 'on';
-                            'splitreg'    'string' { 'on','off' } 'off';
-                            'interaction' 'string' { 'on','off' } 'off' });
+    'splitreg'    'string' { 'on','off' } 'off';
+    'level'       'string' { 'one','two','both'} 'both';
+    'interaction' 'string' { 'on','off' } 'off' });
 if ischar(g)
     error(g);
 end
@@ -72,12 +75,14 @@ for iDes = 1:length(des)
             allFactors{count} = sprintf('%s - continuous variable', des(iDes).variable(iVar).label);
             allFactorsStruct(count).vartype = 'continuous';
             allFactorsStruct(count).label = des(iDes).variable(iVar).label;
+            allFactorsStruct(count).level = des(iDes).variable(iVar).level;
             count = count+1;
         else
             strVals = getstrval(des(iDes).variable(iVar).value);
             for iSubVal = 1:length(strVals)
                 allFactorsStruct(count).vartype = 'categorical';
                 allFactorsStruct(count).label = des(iDes).variable(iVar).label;
+                allFactorsStruct(count).level = des(iDes).variable(iVar).level;
                 allFactorsStruct(count).value = strVals{iSubVal};
                 if isnumeric(strVals{iSubVal})
                     allFactors{count} = sprintf('%s - %d', des(iDes).variable(iVar).label, strVals{iSubVal});
@@ -98,29 +103,69 @@ if length(allFactors) ~= length(unique(allFactors))
     allFactorsStruct = allFactorsStruct(inds);
 end
 
+% filter first or second level
+if ~strcmpi(g.level, 'both')
+    allFactorsStruct = filterlevel(allFactorsStruct, g.level);
+end
+
 % redorders factors so that all variables are grouped
-
 if strcmpi(g.gui, 'on')
-    [~,~,des] = std_limodesign(allFactorsStruct,[], 'desconly', 'on', 'splitreg', g.splitreg, 'interaction', g.interaction);
-
+    
+    if strcmpi(g.level, 'both')
+        allFactorsStruct1 = filterlevel(allFactorsStruct, 'one');
+        allFactorsStruct2 = filterlevel(allFactorsStruct, 'two');
+        [~,~,des1] = std_limodesign(allFactorsStruct1,[], 'desconly', 'on', 'splitreg', g.splitreg, 'interaction', g.interaction);
+        [~,~,des2] = std_limodesign(allFactorsStruct2,[], 'desconly', 'on', 'splitreg', g.splitreg, 'interaction', g.interaction);
+    elseif strcmpi(g.level, 'one')
+        [~,~,des1] = std_limodesign(allFactorsStruct,[], 'desconly', 'on', 'splitreg', g.splitreg, 'interaction', g.interaction);
+        des2 = {};
+    elseif strcmpi(g.level, 'two')
+        [~,~,des2] = std_limodesign(allFactorsStruct,[], 'desconly', 'on', 'splitreg', g.splitreg, 'interaction', g.interaction);
+        des1 = {};
+    end
+    
     % generate categorical labels
-    allLabels = {};
-    count     = 1;
-    for iCat = 1:length(des.categorical)
-        for iVal = 1:length(des.categorical{iCat})
-            allLabels{count} = [ int2str(count) '. ' formatcond(des.categorical{iCat}{iVal}) ];
-            count = count+1;
+    allLabels1 = getlabels(des1);
+    allLabels2 = getlabels(des2);
+    
+    listui = {};
+    if ~isempty(des2)
+        listui{2,1} = { 'Style', 'text', 'string' '2nd-level variables' 'fontweight' 'bold' };
+        listui{2,2} = { 'Style', 'text', 'string' '(inter participant)' };
+        for index = 1:length(allLabels2)
+            listui{2,index+2} = { 'Style', 'text', 'string' allLabels2{index} };
         end
     end
-    for iCont = 1:length(des.continuous)
-        allLabels{count} = [ int2str(count) '. ' formatcond(des.continuous{iCont}) ];
-        count = count+1;
+    if ~isempty(des1)
+        listui{1,1} = { 'Style', 'text', 'string' '1st-level variables' 'fontweight' 'bold' };
+        listui{1,2} = { 'Style', 'text', 'string' '(intra participant)' };
+        for index = 1:length(allLabels1)
+            listui{1,index+2} = { 'Style', 'text', 'string' allLabels1{index} };
+        end
+    else
+        listui(1,:) = [];
+    end
+    geometry = cell(1,size(listui,2));
+    geometry(:) = {ones(1,size(listui,1))};
+    listui = listui(:);
+    listui{end+1} = {};
+    geometry{end+1} = [1];
+    
+    geometry = { geometry{:} 1 };
+    listui = {listui{:} { 'width',80,'align','center','Style', 'pushbutton', 'string', 'OK', 'callback', ['set(gcbf, ''userdata'', ''OK'');'] }  };
+    
+    fig = figure('visible', 'off');
+    [~, ~, allobj] = supergui( 'fig', fig, 'geomhoriz', geometry, 'uilist', listui, ...
+        'borders', [0.05 0.015 0.08 0.06], 'spacing', [0 0], 'horizontalalignment', 'left', 'adjustbuttonwidth', 'off' );
+    
+    waitfor( fig, 'userdata');
+    
+    try,
+        result = get(fig, 'userdata');
+        close(fig);
+        drawnow;
     end
     
-    % add constant (for GUI)
-    allLabels{count} = [ int2str(count) '. Constant' ];
-    
-    warndlg2(strvcat(allLabels), 'List of explanatory variables');
 end
 
 % convert nested values to linear sequence
@@ -143,14 +188,41 @@ end
 function str = formatcond(cellVal)
 
 for iItem = 1:2:length(cellVal)
-    if isempty(cellVal{iItem+1}) % continuous var
-         tmpFactor = sprintf('%s (continuous)', cellVal{iItem});
+    if iItem+1>length(cellVal) || isempty(cellVal{iItem+1}) % continuous var
+        tmpFactor = sprintf('%s (continuous)', cellVal{iItem});
     elseif isnumeric(cellVal{iItem+1})
-         tmpFactor = sprintf('%s = %d', cellVal{iItem}, cellVal{iItem+1});
+        tmpFactor = sprintf('%s = %d', cellVal{iItem}, cellVal{iItem+1});
     else tmpFactor = sprintf('%s = %s', cellVal{iItem}, cellVal{iItem+1});
     end
     if iItem == 1
-         str = tmpFactor;
+        str = tmpFactor;
     else str = sprintf('%s & %s', str, tmpFactor);
     end
 end
+
+% select variables at a specific level
+function allFactorsStruct = filterlevel(allFactorsStruct, level)
+rmInd = [];
+for ind = 1:length(allFactorsStruct)
+    if ~strcmpi(allFactorsStruct(ind).level,level)
+        rmInd = [ rmInd ind ];
+    end
+end
+allFactorsStruct(rmInd) = [];
+
+% get labels for design
+function allLabels = getlabels(des)
+allLabels = {};
+count     = 1;
+if isempty(des), return; end
+for iCat = 1:length(des.categorical)
+    for iVal = 1:length(des.categorical{iCat})
+        allLabels{count} = [ int2str(count) '. ' formatcond(des.categorical{iCat}{iVal}) ];
+        count = count+1;
+    end
+end
+for iCont = 1:length(des.continuous)
+    allLabels{count} = [ int2str(count) '. ' formatcond(des.continuous{iCont}) ];
+    count = count+1;
+end
+allLabels{count} = [ int2str(count) '. Constant' ];
