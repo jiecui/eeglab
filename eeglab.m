@@ -214,6 +214,13 @@ if ~ismatlab
     end
 end
 
+% check potential issues with strjoin
+% -----------------------------------
+strjoinPath = fileparts(which('strjoin'));
+[~,strjoinPath2] = fileparts(strjoinPath);
+if ~strcmpi(strjoinPath2, 'strfun')
+    warning(sprintf('Potential function conflict for strjoin.m located in "%s" \nWe suggest removing the path from Matlab to avoid problems.', strjoinPath));
+end
 
 % check for duplicate versions of EEGLAB
 % --------------------------------------
@@ -550,6 +557,7 @@ cb_plugin      = [ nocheck 'if plugin_menu(PLUGINLIST) , close(findobj(''tag'', 
 cb_saveh1      = [ nocheck 'LASTCOM = pop_saveh(EEG.history);' e_hist_nh];
 cb_saveh2      = [ nocheck 'LASTCOM = pop_saveh(ALLCOM);'      e_hist_nh];
 cb_runsc       = [ nocheck 'LASTCOM = pop_runscript;'          e_hist   ];
+cb_testc       = 'test_compiled_version;';
 cb_quit        = [ 'close(gcf); disp(''To save the EEGLAB command history  >> pop_saveh(ALLCOM);'');' ...
                    'clear global EEG ALLEEG LASTCOM CURRENTSET;'];
 
@@ -740,7 +748,10 @@ if ismatlab && ~strcmpi(onearg, 'nogui')
     hist_m = eegmenu( false,  file_m, 'Label', 'History scripts'               , 'userdata', on     , 'Separator', 'on');
     eegmenu( false,  hist_m, 'Label', 'Save dataset history script'            , 'userdata', ondata     , 'CallBack', cb_saveh1);
     eegmenu( false,  hist_m, 'Label', 'Save session history script'            , 'userdata', ondatastudy, 'CallBack', cb_saveh2);    
-    eegmenu( false,  hist_m, 'Label', 'Run script'                             , 'userdata', on         , 'CallBack', cb_runsc);    
+    eegmenu( false,  hist_m, 'Label', 'Run script'                             , 'userdata', on         , 'CallBack', cb_runsc);
+    if isdeployed
+        eegmenu( false,  hist_m, 'Label', 'Test compiled version'              , 'userdata', on         , 'CallBack', cb_testc);
+    end
 
     if ~isdeployed
         eegmenu( false,  file_m,   'Label', 'Manage EEGLAB extensions'  , 'userdata', on, 'CallBack', cb_plugin);
@@ -803,7 +814,7 @@ if ismatlab && ~strcmpi(onearg, 'nogui')
 
     eegmenu( false,  loc_m,  'Label', 'By name'                                , 'userdata', onchannel, 'CallBack', cb_topoblank1);
     eegmenu( false,  loc_m,  'Label', 'By number'                              , 'userdata', onchannel, 'CallBack', cb_topoblank2);
-    eegmenu( versL,  plot_m, 'Label', 'Channel data (scroll)'                  , 'userdata', ondata , 'CallBack', cb_eegplot1, 'Separator', 'on');
+    eegmenu( false,  plot_m, 'Label', 'Channel data (scroll)'                  , 'userdata', ondata , 'CallBack', cb_eegplot1, 'Separator', 'on');
     eegmenu( false,  plot_m, 'Label', 'Channel spectra and maps'               , 'userdata', ondata , 'CallBack', cb_spectopo1);
     eegmenu( false,  plot_m, 'Label', 'Channel properties'                     , 'userdata', ondata , 'CallBack', cb_prop1);
     eegmenu( false,  plot_m, 'Label', 'Channel ERP image'                      , 'userdata', onepoch, 'CallBack', cb_erpimage1);
@@ -856,7 +867,7 @@ if ismatlab && ~strcmpi(onearg, 'nogui')
     if ~isdeployed
         %newerVersionMenu = eegmenu( false,  help_m, 'Label', 'Upgrade to the Latest Version'          , 'userdata', on, 'ForegroundColor', [0.6 0 0]);
         eegmenu( false,  help_m, 'Label', 'About EEGLAB'                           , 'userdata', on, 'CallBack', 'pophelp(''eeglab'');');
-        eegmenu( false,  help_m, 'Label', 'Check for EEGLAB update'                , 'userdata', on, 'CallBack', 'eeglab_update(''feedback'');');
+        eegmenu( false,  help_m, 'Label', 'Check for EEGLAB update'                , 'userdata', on, 'CallBack', 'eeglab_update(''menucall'');');
         eegmenu( false,  help_m, 'Label', 'About EEGLAB help'                      , 'userdata', on, 'CallBack', 'pophelp(''eeg_helphelp'');');
         eegmenu( false,  help_m, 'Label', 'EEGLAB menus'                           , 'userdata', on, 'CallBack', 'pophelp(''eeg_helpmenu'');','separator','on');
 
@@ -882,11 +893,17 @@ end
 
 statusconnection = 1;
 if isdeployed
-    funcname = {  'eegplugin_dipfit' ...
+    funcname = {  'eegplugin_eepimport' ...
+                  'eegplugin_bva_io' ...
+                  'eegplugin_clean_rawdata' ...                  
+                  'eegplugin_dipfit' ...
+                  'eegplugin_egilegacy' ...
                   'eegplugin_firfilt' ...
                   'eegplugin_iclabel' ...
-                  'eegplugin_clean_rawdata' ...
-                  'eegplugin_musemonitor' };
+                  'eegplugin_mffmatlabio' ...
+                  'eegplugin_musemonitor' ...
+                  'eegplugin_neuroscanio' ...
+                    };
     for indf = 1:length(funcname)
         try 
             vers = feval(funcname{indf}, gcf, trystrs, catchstrs);
