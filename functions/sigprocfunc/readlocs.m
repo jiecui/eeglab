@@ -344,8 +344,8 @@ if ischar(filename)
 	% --------------------
    if strcmpi(g.filetype, 'autodetect'), g.filetype = ''; end
    g.filetype = strtok(g.filetype);
-   periods = find(filename == '.');
-   fileextension = filename(periods(end)+1:end);
+   [~,~,fileextension] = fileparts(filename);
+   fileextension = fileextension(2:end);
    g.filetype = lower(g.filetype);
    if isempty(g.filetype)
        switch lower(fileextension)

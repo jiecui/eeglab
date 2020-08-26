@@ -99,8 +99,10 @@ if ischar(varargin{1}) && ( strcmpi(varargin{1}, 'daterp') || ...
         strcmpi(varargin{1}, 'icatimef'))
     opt.measure  = varargin{1};
     opt.design   = varargin{2};
-    opt.erase    = 'on';
-    opt.method   = 'OSL';
+    opt.ow_chanlocfile = 'no';  % if chanloc file exist, do not overwrite
+    opt.erase          = 'on';  % erase previous folders/file with the same name
+    opt.method         = 'WSL'; % weighted least squares by default
+    opt.zscore         = 1;     % zscore regressors
 else
     opt = finputcheck( varargin, ...
         { 'measure'        'string'  { 'daterp' 'datspec' 'dattimef' 'icaerp' 'icaspec' 'icatimef' } 'daterp'; ...
@@ -113,7 +115,9 @@ else
           'timelim'        'real'    []               [] ;
           'neighboropt'    'cell'    {}               {} ;
           'chanloc'        'struct'  {}               struct('no', {}); % default empty structure
-          'neighbormat'    'real'    []               [] },...
+          'neighbormat'    'real'    []               [] ;
+          'zscore'         'real'    [0,1]            1  ;
+          'ow_chanlocfile' 'string'  {'yes','no'}     'no'},...
           'std_limo');
     if ischar(opt), error(opt); end
 end
@@ -148,8 +152,11 @@ elseif exist(fullfile(STUDY.filepath, 'limo_chanlocs.mat'),'file')
 end
 
 if ~isempty(limoChanlocs)
-    ow= questdlg2('channel location file found, do you want to overwrite','overwrite?','yes','no','no');
-    if isempty(ow) || strcmpi(ow,'no')
+    if ~strcmpi(opt.ow_chanlocfile,'no') % empty or yes
+        ow_chanlocfile = questdlg2('channel location file found, do you want to overwrite','overwrite?','yes','no','no');
+    end
+    
+    if isempty(ow_chanlocfile) || strcmpi(ow_chanlocfile,'no')
         skip_chanlocs = 1;
     end
 end
@@ -190,7 +197,7 @@ if strcmp(model.defaults.type,'Components')
     end
 end
 
-% computing channel neighbox matrix
+% computing channel neighbour matrix
 % ---------------------------------
 if skip_chanlocs == 0
     chanloc_created = 1;
@@ -233,18 +240,6 @@ if chanloc_created
     fprintf('Saving channel neighbors for correction for multiple comparisons in \n%s\n', limoChanlocsFile);
 end
 
-% 1st level analysis
-% -------------------------------------------------------------------------
-model.cat_files  = [];
-model.cont_files = [];
-unique_subjects  = STUDY.design(STUDY.currentdesign).cases.value'; % all designs have the same cases
-nb_subjects      = length(unique_subjects);
-
-% also should split per session
-% for s = nb_subjects:-1:1
-%     nb_sets(s) = numel(find(strcmp(unique_subjects{s},{STUDY.datasetinfo.subject})));
-% end
-
 % find out if the channels are interpolated
 % -----------------------------------------
 interpolated = zeros(1,length(STUDY.datasetinfo));
@@ -255,6 +250,18 @@ if strcmp(model.defaults.type,'Channels')
         if length(tmpChans.labels) > ALLEEG(iDat).nbchan, interpolated(iDat) = 1; end
     end
 end
+
+% 1st level analysis
+% -------------------------------------------------------------------------
+model.cat_files  = [];
+model.cont_files = [];
+unique_subjects  = STUDY.design(STUDY.currentdesign).cases.value'; % unique_subject uses the STUDY name
+nb_subjects      = length(unique_subjects);
+
+% also should split per session
+% for s = nb_subjects:-1:1
+%     nb_sets(s) = numel(find(strcmp(unique_subjects{s},{STUDY.datasetinfo.subject})));
+% end
 
 % simply reshape to read columns
 % -------------------------------------------------------------------------
@@ -413,8 +420,16 @@ factors = pop_listfactors(STUDY.design(opt.design), 'gui', 'off', 'level', 'one'
 for s = 1:nb_subjects
     % save continuous and categorical data files
     trialinfo = std_combtrialinfo(STUDY.datasetinfo, unique_subjects{s});
-    [catMat,contMat,limodesign] = std_limodesign(factors, trialinfo, 'splitreg', opt.splitreg, 'interaction', opt.interaction);
-
+    % [catMat,contMat,limodesign] = std_limodesign(factors, trialinfo, 'splitreg', opt.splitreg, 'interaction', opt.interaction);
+    [catMat,contMat,limodesign] = std_limodesign(factors, trialinfo, 'splitreg', 'off', 'interaction', opt.interaction);
+    if strcmpi(opt.splitreg,'on')
+        for c=1:size(contMat,2)
+            splitreg{c} = limo_split_continuous(catMat,contMat(:,c));
+        end
+        contMat    = cell2mat(splitreg);
+        opt.zscore = 0; % regressors are now zscored
+    end
+    
     % copy results
     model.cat_files{s}                 = catMat;
     model.cont_files{s}                = contMat;
@@ -432,11 +447,13 @@ for s = 1:nb_subjects
     STUDY.limo.subjects(s).cat_file    = catMat;
     STUDY.limo.subjects(s).cont_file   = contMat;
 end
-
+ 
 % then we add contrasts for conditions that were merged during design selection
-if ~isempty(factors)
-    if length(STUDY.design(opt.design).variable(1).value) ~= length(factors)
-        limocontrast = zeros(length(STUDY.design(opt.design).variable.value),length(factors)+1); % length(factors)+1 to add the contant
+% i.e. multiple categorical variables (factors) and yet not matching the number 
+% of variables (contrasts are then a weigthed sum of the crossed factors)
+if ~isempty(factors) && length(STUDY.design(opt.design).variable) == 1  % only one variable
+    if length(STUDY.design(opt.design).variable(1).value) ~= length(factors) % and this var has more values than the number of factors 
+        limocontrast = zeros(length(STUDY.design(opt.design).variable(1).value),length(factors)+1); % length(factors)+1 to add the contant
         for n=1:length(factors)
             factor_names{n} = factors(n).value;
         end
@@ -512,7 +529,7 @@ elseif strcmp(Analysis,'dattimef') || strcmp(Analysis,'icaersp')
 end
 
 model.defaults.fullfactorial    = 0;                 % all variables
-model.defaults.zscore           = 0;                 % done that already
+model.defaults.zscore           = opt.zscore;        % done that already
 model.defaults.bootstrap        = 0 ;                % only for single subject analyses - not included for studies
 model.defaults.tfce             = 0;                 % only for single subject analyses - not included for studies
 model.defaults.method           = opt.method;        % default is OLS - to be updated to 'WLS' once validated
@@ -564,8 +581,8 @@ else
     end
 end
 
-% split txt files
-if ~isempty(STUDY.group) && sum(procstatus)~=0
+% split txt files if more than 1 group
+if length(STUDY.group) > 1
     glm_name = [STUDY.design(STUDY.currentdesign).name '_GLM_' model.defaults.type '_' model.defaults.analysis '_' model.defaults.method];
     for g= 1:length(STUDY.group)
         subset = arrayfun(@(x)(strcmpi(x.group,STUDY.group{g})), STUDY.datasetinfo);
