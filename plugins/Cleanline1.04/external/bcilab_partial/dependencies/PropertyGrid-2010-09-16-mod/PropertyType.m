@@ -249,7 +249,7 @@ classdef PropertyType
                             end
                         case 'cellstr'
                             if ~isempty(value)
-                                javavalue = java.lang.String(strjoin(sprintf('\n'), value));
+                                javavalue = java.lang.String(bl_strjoin(sprintf('\n'), value));
                             else
                                 javavalue = java.lang.String();
                             end
@@ -449,7 +449,7 @@ classdef PropertyType
             end
             if ~isempty(self.Domain)
                 if iscellstr(self.Domain)
-                    s = [s ' ' strjoin(',', self.Domain)];
+                    s = [s ' ' bl_strjoin(',', self.Domain)];
                 elseif isnumeric(self.Domain)
                     s = [s ' ' mat2str(self.Domain)];
                 end

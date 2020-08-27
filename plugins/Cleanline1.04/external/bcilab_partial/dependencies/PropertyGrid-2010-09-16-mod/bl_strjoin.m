@@ -9,12 +9,12 @@
 % See also: strsplit, cell2mat
 
 % Copyright 2008-2009 Levente Hunyadi
-function string = strjoin(adjoiner, strings)
+function string = bl_strjoin(adjoiner, strings)
 
 validateattributes(adjoiner, {'char'}, {'vector'});
 validateattributes(strings, {'cell'}, {'vector'});
 assert(iscellstr(strings), ...
-    'strjoin:ArgumentTypeMismatch', ...
+    'bl_strjoin:ArgumentTypeMismatch', ...
     'The elements to join should be stored in a cell vector of strings (character arrays).');
 if isempty(strings)
     string = '';
