@@ -1,15 +1,6 @@
 [submodule "plugins/firfilt"]
 	path = plugins/firfilt
 	url = https://github.com/widmann/firfilt.git
-[submodule "plugins/dipfit"]
-	path = plugins/dipfit
-	url = https://github.com/sccn/dipfit.git
-[submodule "plugins/clean_rawdata"]
-	path = plugins/clean_rawdata
-	url = https://github.com/sccn/clean_rawdata.git
-[submodule "plugins/ICLabel"]
-	path = plugins/ICLabel
-	url = https://github.com/sccn/ICLabel
 [submodule "plugins/MEF_import"]
 	path = plugins/MEF_import1.18
 	url = https://github.com/jiecui/MEF_import
