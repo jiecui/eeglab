@@ -1,4 +1,4 @@
-function [ s ] = xml2struct( file )
+function s = xml2struct( file )
 % XML2STRUCT Convert xml file into a MATLAB structure
 %
 % Syntax:
@@ -33,18 +33,18 @@ function [ s ] = xml2struct( file )
 %
 % See also .
 
-% Modified by Richard J. Cui.
-% $Revision: 0.1$  $Date: Mon 05/27/2019  3:28:33.118 PM$
-%
-% 1026 Rocky Creek Dr NE
-% Rochester, MN 55906, USA
-%
-% Email: richard.cui@utoronto.ca
-%
 % Written by W. Falkena, ASTI, TUDelft, 21-08-2010
 % Attribute parsing speed increased by 40% by A. Wanner, 14-6-2011
 % Added CDATA support by I. Smirnov, 20-3-2012
 % Modified by X. Mo, University of Wisconsin, 12-5-2012
+
+% Modified by Richard J. Cui.
+% $Revision: 0.2$  $Date: Wed 09/23/2020  4:17:22.912 PM$
+%
+% Rocky Creek Dr NE
+% Rochester, MN 55906, USA
+%
+% Email: richard.cui@utoronto.ca
 
 % =========================================================================
 % main
