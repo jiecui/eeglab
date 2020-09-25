@@ -20,7 +20,7 @@
 
 /* 
  modified by Richard J. Cui.
- $Revision: 0.5 $  $Date: Thu 01/09/2020  3:50:49.575 PM $
+ $Revision: 0.6 $  $Date: Thu 09/24/2020  9:21:34.089 PM $
 
  Rocky Creek Dr NE
  Rochester, MN 55906, USA
@@ -42,14 +42,14 @@
 void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long long int end_idx, int *decomp_data, char *password)
 {
 	char			*c;
-	unsigned char		*header;
-	int			*dcdp, *temp_data_buf;
-	unsigned int		cpu_endianness, n_read, comp_data_len, bytes_decoded, tot_samples;
-	unsigned int		i, n_index_entries, tot_index_fields, kept_samples, skipped_samples;
+	unsigned char	*header;
+	int			    *dcdp, *temp_data_buf;
+	unsigned int	cpu_endianness, n_read, comp_data_len, bytes_decoded, tot_samples;
+	unsigned int	i, n_index_entries, tot_index_fields, kept_samples, skipped_samples;
 	unsigned long long int	start_block_file_offset, end_block_file_offset, start_block_idx, end_block_idx;
 	unsigned long long int	*index_data, last_block_len;
-    ui1         encryptionKey[240], *cdp, *comp_data, *last_block_p;
-    si1         *diff_buffer;
+    ui1             encryptionKey[240], *cdp, *comp_data, *last_block_p;
+    si1             *diff_buffer;
 	FILE			*fp;
 	MEF_HEADER_INFO		hdr_info;
 	RED_BLOCK_HDR_INFO	block_hdr;
@@ -72,7 +72,7 @@ void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long lo
 		return;
 	}
 	header = (unsigned char *) malloc(MEF_HEADER_LENGTH);  // malloc to ensure boundary alignment
-	n_read = fread((void *) header, sizeof(char), (size_t) MEF_HEADER_LENGTH, fp);
+	n_read = (unsigned int) fread((void *) header, sizeof(char), (size_t) MEF_HEADER_LENGTH, fp);
 	if (n_read != MEF_HEADER_LENGTH) {
 		mexErrMsgIdAndTxt("decompress_mef_mex:decomp_mef",
                 "error reading the file \"%s\" => exiting\n",  f_name);
@@ -110,7 +110,7 @@ void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long lo
 		return;
 	}
 	
-	n_read = fread(index_data, sizeof(unsigned long long int), (size_t) tot_index_fields, fp);
+	n_read = (unsigned int) fread(index_data, sizeof(unsigned long long int), (size_t) tot_index_fields, fp);
 	if (n_read != tot_index_fields) {
 		mexErrMsgIdAndTxt("decompress_mef_mex:decomp_mef",
                 "error reading index data for file \"%s\" => exiting\n", f_name);
@@ -160,7 +160,7 @@ void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long lo
     
 	/* read in compressed data */
 	fseek(fp, (long int) start_block_file_offset, SEEK_SET);
-	n_read = fread(comp_data, sizeof(char), (size_t) comp_data_len, fp);
+	n_read = (unsigned int) fread(comp_data, sizeof(char), (size_t) comp_data_len, fp);
 	if (n_read != comp_data_len) {
 		mexErrMsgIdAndTxt("decompress_mef_mex:decomp_mef",
                 "error reading data for file \"%s\" => exiting\n", f_name);
@@ -222,11 +222,11 @@ void decomp_mef(char *f_name, unsigned long long int start_idx, unsigned long lo
 // The mex gateway routine 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	char			*f_name, *password;
+	char		*f_name, *password;
 	int			buf_len, status, decomp_data_len, *decomp_data;
 	unsigned long long int	start_idx, end_idx, long_decomp_data_len;
-	void			decomp_mef();
-    mwSize          dims[2];
+	void		decomp_mef(char*, unsigned long long int, unsigned long long int, int*, char*);
+    mwSize      dims[2];
 	
 	//  Check for proper number of arguments 
 	if (nrhs != 4) 
@@ -242,7 +242,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 "file name must be a string => exiting");
 		return;
 	}	
-	buf_len = (mxGetM(prhs[0]) * mxGetN(prhs[0])) + 2; // Get the length of the input string 
+	buf_len = (int) (mxGetM(prhs[0]) * mxGetN(prhs[0])) + 2; // Get the length of the input string
 	f_name = malloc(buf_len); // Allocate memory for file_name string
 	status = mxGetString(prhs[0], f_name, buf_len);
 	if (status != 0) {
@@ -283,7 +283,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 "password must be a string => exiting");
 		return;
 	}	
-	buf_len = (mxGetM(prhs[3]) * mxGetN(prhs[3])) + 2; // Get the length of the input string 
+	buf_len = (int) (mxGetM(prhs[3]) * mxGetN(prhs[3])) + 2; // Get the length of the input string 
 	password = malloc(buf_len); // Allocate memory for file_name string
 	status = mxGetString(prhs[3], password, buf_len);
 	if (status != 0) {

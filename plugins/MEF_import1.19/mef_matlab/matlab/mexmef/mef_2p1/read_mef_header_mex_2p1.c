@@ -20,7 +20,7 @@
 
 /* 
  modified by Richard J. Cui.
- $Revision: 0.4 $  $Date: Thu 01/30/2020 12:05:46.465 AM $
+ $Revision: 0.5 $  $Date: Thu 09/24/2020  6:41:41.575 PM $
 
  Rocky Creek Dr NE
  Rochester, MN 55906, USA
@@ -41,10 +41,9 @@
 
 int read_mef_header(char *f_name, MEF_HEADER_INFO *hdr_info, char *password)
 {
-	char			*c, *comp_data;
-	unsigned char		*header;
-	unsigned int		cpu_endianness, n_read;
-	unsigned int		i;
+    char			*c;
+    unsigned char	*header;
+	unsigned int	cpu_endianness, n_read;
 	FILE			*fp;
 	
 	/* get cpu endianness */
@@ -63,7 +62,7 @@ int read_mef_header(char *f_name, MEF_HEADER_INFO *hdr_info, char *password)
 		return(1);
 	}
 	header = (unsigned char *) malloc(MEF_HEADER_LENGTH);  // malloc to ensure boundary alignment
-	n_read = fread((void *) header, sizeof(char), (size_t) MEF_HEADER_LENGTH, fp);
+	n_read = (unsigned int) fread((void *) header, sizeof(char), (size_t) MEF_HEADER_LENGTH, fp);
 	if (n_read != MEF_HEADER_LENGTH) {
 		printf("[read_mef_header_2p1] error reading the file \"%s\" => exiting\n",  f_name);
 		return(1);
@@ -94,8 +93,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	mxArray         *fout;
 	const mwSize	dims[] = {1,8};
 	int             buf_len, status, i, hdr_struct_len, rtn_val;
-	unsigned long long int	start_idx, end_idx, long_decomp_data_len;
-	int             read_mef_header();
+	int             read_mef_header(char *, MEF_HEADER_INFO *, char *);
 	MEF_HEADER_INFO header;
     
     //set up field names:
@@ -157,7 +155,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("[read_mef_header_2p1] file name must be a string => exiting");
 		return;
 	}		
-	buf_len = (mxGetM(prhs[0]) * mxGetN(prhs[0])) + 2; // Get the length of the input string 
+	buf_len = (int) (mxGetM(prhs[0]) * mxGetN(prhs[0])) + 2; // Get the length of the input string
 	f_name = malloc(buf_len); // Allocate memory for file_name string
 	status = mxGetString(prhs[0], f_name, buf_len);
 	if (status != 0) {
@@ -175,7 +173,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		mexErrMsgTxt("[read_mef_header_2p1] Password must be a stringx => exiting");
 		return;
 	}	
-	buf_len = (mxGetM(prhs[1]) * mxGetN(prhs[1])) + 2; // Get the length of the input string 
+	buf_len = (int) (mxGetM(prhs[1]) * mxGetN(prhs[1])) + 2; // Get the length of the input string 
 	password = malloc(buf_len); // Allocate memory for file_name string
 	status = mxGetString(prhs[1], password, buf_len);
 	if (status != 0) {
