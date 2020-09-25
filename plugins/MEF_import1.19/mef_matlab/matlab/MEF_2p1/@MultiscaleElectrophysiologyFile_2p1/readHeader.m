@@ -144,7 +144,7 @@ function header = readHeader(this, varargin)
 % See also .
 
 % Copyright 2019-2020 Richard J. Cui. Created: Mon 04/29/2019 10:33:58.517 PM
-% $Revision: 0.7 $  $Date: Tue 02/04/2020 12:04:38.033 PM $
+% $Revision: 0.8 $  $Date: Fri 09/25/2020  9:41:56.944 AM $
 %
 % Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -165,7 +165,7 @@ else
     this.SubjectPassword = q.password; % this is not correct
 end % if
 
-header = read_mef_header_2p1(wholename, pw);
+header = read_mef_header_2p1(wholename, pw); % mex
 this.Header = header;
 
 end %function

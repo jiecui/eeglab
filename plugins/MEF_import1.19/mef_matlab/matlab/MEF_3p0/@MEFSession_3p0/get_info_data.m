@@ -30,7 +30,7 @@ function [sess_info, unit] = get_info_data(this)
 % See also MEFSession_3p0, get_sessinfo.
 
 % Copyright 2020 Richard J. Cui. Created: Fri 01/03/2020  4:19:10.683 PM
-% $ Revision: 0.3 $  $ Date: Thu 02/20/2020 11:49:42.626 AM $
+% $ Revision: 0.4 $  $ Date: Fri 09/25/2020  9:41:56.944 AM $
 %
 % Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -51,7 +51,7 @@ var_types = {'string', 'double', 'double', 'double', 'double', 'double',...
 % get the metadata
 metadata = this.MetaData;
 if isempty(metadata)
-    metadata = this.read_mef_session_metadata_3p0(this.SessionPath);
+    metadata = this.read_mef_header_3p0(this.SessionPath);
     this.MetaData = metadata;
 end % if
 

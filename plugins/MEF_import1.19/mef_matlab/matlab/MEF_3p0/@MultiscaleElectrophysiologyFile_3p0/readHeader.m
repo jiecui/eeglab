@@ -56,10 +56,10 @@ function [header, channel] = readHeader(this, varargin)
 % Note:
 %   See the details of MEF file at https://github.com/benbrinkmann/mef_lib_2_1
 % 
-% See also read_mef_header_mex_3p0.m.
+% See also read_mef_header_mex_3p0.c.
 
 % Copyright 2020 Richard J. Cui. Created: Tue 02/04/2020  3:33:28.609 PM
-% $Revision: 0.4 $  $Date: Wed 09/23/2020  4:17:22.912 PM $
+% $Revision: 0.5 $  $Date: Fri 09/25/2020  9:41:56.944 AM $
 %
 % Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -91,9 +91,9 @@ end % if
 map_tsi = true;
 [sess_path,chan_name] = fileparts(wholename);
 if isempty(pw)
-    md = read_mef_session_metadata(sess_path,[],map_tsi);
+    md = read_mef_header_3p0(sess_path,[],map_tsi); % mex
 else
-    md = read_mef_session_metadata(sess_path,pw,map_tsi);
+    md = read_mef_header_3p0(sess_path,pw,map_tsi); % mex
 end % if
 all_chan_name = {md.time_series_channels.name};
 chan_indx = ismember(all_chan_name,chan_name);
