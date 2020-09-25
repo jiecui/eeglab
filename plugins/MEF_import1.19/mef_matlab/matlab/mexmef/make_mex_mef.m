@@ -27,11 +27,11 @@ libmef_2p1 = fullfile(fileparts(fileparts(mex_mef)),'libmef','mef_2p1'); % libra
 mexmef_2p1 = fullfile(mex_mef,'mef_2p1'); % mex
 
 fprintf('===== Compiling c-mex for MEF 2.1 data =====\n')
-fprintf('Building read_mef_header_2p1.mex*\n')
-mex('-output','read_mef_header_2p1',['-I' libmef_2p1],...
-    fullfile(mexmef_2p1,'read_mef_header_mex_2p1.c'),...
+fprintf('Building read_mef_info_2p1.mex*\n')
+mex('-output','read_mef_info_2p1',['-I' libmef_2p1],...
+    fullfile(mexmef_2p1,'read_mef_info_mex_2p1.c'),...
     fullfile(libmef_2p1,'mef_lib_2p1.c'))
-movefile('read_mef_header_2p1.mex*',mexmef_2p1)
+movefile('read_mef_info_2p1.mex*',mexmef_2p1)
 
 fprintf('\n')
 fprintf('Building decompress_mef_2p1.mex*\n')

@@ -165,7 +165,7 @@ else
     this.SubjectPassword = q.password; % this is not correct
 end % if
 
-header = read_mef_header_2p1(wholename, pw); % mex
+header = read_mef_info_2p1(wholename, pw); % mex
 this.Header = header;
 
 end %function
