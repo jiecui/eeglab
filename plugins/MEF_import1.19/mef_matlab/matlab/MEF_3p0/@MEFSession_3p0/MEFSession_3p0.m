@@ -39,7 +39,7 @@ classdef MEFSession_3p0 < MEFSession & MultiscaleElectrophysiologyFile_3p0
     % properties of importing session
     % -------------------------------
     properties
-        MetaData            % session metadata (see read_mef_header_3p0.m)
+        MetaData            % session metadata (see read_mef_3p0.m)
                             % for the detail)
         PathToSession       % not include session name and extension
         SessionName         % not include extension
@@ -112,7 +112,7 @@ classdef MEFSession_3p0 < MEFSession & MultiscaleElectrophysiologyFile_3p0
     % -------------
     methods
         [sesspath, channames] = findSessPath(this, filename) % find session path and channel name
-        metadata = read_mef_header_3p0(this, varargin) % get session header metadata of MEF 3.0
+        metadata = read_mef_info(this, varargin) % get session metadata info of MEF 3.0
         valid_yn = checkSessValid(this, varargin) % check validity of session info
         [X, t] = import_sess(this, varargin) % import session of MEF 3.0 data
         metadata = setSessionInfo(this, varargin) % set session information

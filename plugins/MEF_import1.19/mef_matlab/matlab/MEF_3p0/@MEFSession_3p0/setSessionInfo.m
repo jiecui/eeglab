@@ -16,8 +16,7 @@ function metadata = setSessionInfo(this, varargin)
 %
 %
 % Output(s):
-%   metadata        - [struct] MEF 3.0 MetaData (see
-%                     read_mef_header_3p0)
+%   metadata        - [struct] MEF 3.0 MetaData (see read_mef_info_3p0.m)
 %
 % Example:
 %
@@ -25,7 +24,7 @@ function metadata = setSessionInfo(this, varargin)
 %
 % References:
 %
-% See also read_mef_header_3p0.
+% See also read_mef_info_3p0.
 
 % Copyright 2020 Richard J. Cui. Created: Sat 03/21/2020 11:09:38.008 PM
 % $Revision: 0.5 $  $Date: Fri 09/25/2020  9:41:56.944 AM $
@@ -52,7 +51,7 @@ this.get_sess_parts;
 this.get_sessinfo;
 
 % the names in property ChannelName
-metadata = this.read_mef_header_3p0;
+metadata = this.read_mef_info;
 
 if strcmpi(sort_channel, 'number')
     % sort the order of time_series_channels according to

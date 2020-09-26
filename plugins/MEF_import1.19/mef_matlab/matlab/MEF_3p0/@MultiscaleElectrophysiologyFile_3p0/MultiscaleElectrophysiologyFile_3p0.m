@@ -31,7 +31,7 @@ classdef MultiscaleElectrophysiologyFile_3p0 < MultiscaleElectrophysiologyFile
     % See also .
     
     % Copyright 2020 Richard J. Cui. Created: Tue 02/04/2020  2:21:31.965 PM
-    % $Revision: 0.5 $  $Date: Thu 02/06/2020  2:44:09.445 PM $
+    % $Revision: 0.6 $  $Date: Fri 09/25/2020  9:41:56.944 AM $
     %
     % Rocky Creek Dr NE
     % Rochester, MN 55906, USA
@@ -150,7 +150,7 @@ classdef MultiscaleElectrophysiologyFile_3p0 < MultiscaleElectrophysiologyFile
         bid = readBlockIndexData(this, varargin) % read block indices
         seg_cont = analyzeContinuity(this, varargin) % analyze continuity of data sampling
         [x, t] = importSignal(this, varargin) % input MEF 3.0 time series channel
-        data = read_mef_ts_data_3p0(this, channel_path, varargin) % lower level of inputing channel data
+        data = read_mef_data(this, channel_path, varargin) % read data of MEF 3.0
         pw = processPassword(this, varargin) % process MEF 3.0 password
     end % methods
 end

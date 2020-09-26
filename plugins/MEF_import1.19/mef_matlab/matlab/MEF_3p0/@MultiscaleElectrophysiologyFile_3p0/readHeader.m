@@ -91,9 +91,9 @@ end % if
 map_tsi = true;
 [sess_path,chan_name] = fileparts(wholename);
 if isempty(pw)
-    md = read_mef_header_3p0(sess_path,[],map_tsi); % mex
+    md = read_mef_info_3p0(sess_path,[],map_tsi); % mex
 else
-    md = read_mef_header_3p0(sess_path,pw,map_tsi); % mex
+    md = read_mef_info_3p0(sess_path,pw,map_tsi); % mex
 end % if
 all_chan_name = {md.time_series_channels.name};
 chan_indx = ismember(all_chan_name,chan_name);

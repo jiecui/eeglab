@@ -51,7 +51,7 @@ var_types = {'string', 'double', 'double', 'double', 'double', 'double',...
 % get the metadata
 metadata = this.MetaData;
 if isempty(metadata)
-    metadata = this.read_mef_header_3p0(this.SessionPath);
+    metadata = this.read_mef_info(this.SessionPath);
     this.MetaData = metadata;
 end % if
 

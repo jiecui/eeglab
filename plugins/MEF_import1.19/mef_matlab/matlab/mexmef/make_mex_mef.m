@@ -22,11 +22,11 @@ mex_mef = fileparts(mfilename('fullpath')); % directory of file make_mex_mef.m
 % =========================================================================
 % processing mex for MEF 2.1 file
 % =========================================================================
-% get the directory of mef_2p1
+% get the directories of mef_2p1
 libmef_2p1 = fullfile(fileparts(fileparts(mex_mef)),'libmef','mef_2p1'); % library
 mexmef_2p1 = fullfile(mex_mef,'mef_2p1'); % mex
 
-fprintf('===== Compiling c-mex for MEF 2.1 data =====\n')
+cprintf('Keywords','===== Compiling c-mex for MEF 2.1 data =====\n')
 fprintf('Building read_mef_info_2p1.mex*\n')
 mex('-output','read_mef_info_2p1',['-I' libmef_2p1],...
     fullfile(mexmef_2p1,'read_mef_info_mex_2p1.c'),...
@@ -45,25 +45,25 @@ cd(cur_dir)
 % =========================================================================
 % processing mex for MEF 3.0 file
 % =========================================================================
-% fprintf('\n')
-% fprintf('===== Compiling c-mex for MEF 3.0 data =====\n')
-% 
-% cd([mex_mef, filesep, 'mef_3p0', filesep, 'matmef', filesep]) % assume 'mef_3p0' is the subdirectory
-% fprintf('\n')
-% fprintf('Building read_mef_header_3p0.mex*\n')
-% mex -output read_mef_header_3p0 ...
-%     read_mef_header_mex_3p0.c ...
-%     matmef_mapping.c ...
-%     mex_datahelper.c
-% movefile('read_mef_header_3p0.mex*',mex_mef)
-% 
-% fprintf('\n')
-% fprintf('Building read_mef_ts_data.mex*\n')
-% mex -output read_mef_ts_data ...
-%     read_mef_ts_data.c ...
-%     matmef_data.c
-% movefile('read_mef_ts_data.mex*',mex_mef)
-% 
-% cd(cur_dir)
+% get the directories of mef_3p0
+libmef_3p0 = fullfile(fileparts(fileparts(mex_mef)),'libmef','mef_3p0'); % library
+mexmef_3p0 = fullfile(mex_mef,'mef_3p0'); % mex
+
+fprintf('\n')
+cprintf('Keywords','===== Compiling c-mex for MEF 3.0 data =====\n')
+fprintf('Building read_mef_info_3p0.mex*\n')
+mex('-output','read_mef_info_3p0',...
+    ['-I' libmef_3p0],['-I' mexmef_3p0],...
+    fullfile(mexmef_3p0,'read_mef_info_mex_3p0.c'))
+movefile('read_mef_info_3p0.mex*',mexmef_3p0)
+
+fprintf('\n')
+fprintf('Building decompress_mef_3p0.mex*\n')
+mex('-output','decompress_mef_3p0',...
+    ['-I' libmef_3p0],['-I' mexmef_3p0],...
+    fullfile(mexmef_3p0,'decompress_mef_mex_3p0.c'))
+movefile('decompress_mef_3p0.mex*',mexmef_3p0)
+
+cd(cur_dir)
 
 % [EOF]

@@ -1,11 +1,11 @@
-function data = read_mef_ts_data_3p0(this, channel_path, varargin)
-% MultiscaleElectrophysiologyFile_3p0.READ_MEF_TS_DATA_3P0 Read the MEF 3.0 data from a time-series channel
+function data = read_mef_data(this, channel_path, varargin)
+% MultiscaleElectrophysiologyFile_3p0.READ_MEF_DATA Read the MEF 3.0 data from a time-series channel
 %	
 % Syntax:
-%   data = read_mef_ts_data_3p0(this, channel_path)
-%   data = read_mef_ts_data_3p0(__, password)
-%   data = read_mef_ts_data_3p0(__, password, range_type)
-%   data = read_mef_ts_data_3p0(__, password, range_type, begin, stop)
+%   data = read_mef_data(this, channel_path)
+%   data = read_mef_data(__, password)
+%   data = read_mef_data(__, password, range_type)
+%   data = read_mef_data(__, password, range_type, begin, stop)
 % 
 % Input(s):
 %   this            - [obj] MultiscaleElectrophysiologyFile_3p0 object
@@ -15,7 +15,7 @@ function data = read_mef_ts_data_3p0(this, channel_path, varargin)
 %                     empty string if not encrypted (default = '')
 %                     .
 %   range_type      - [char] (opt) modality that is used to define the 
-%                     data-range to read, either 'time' or 'samples'
+%                     data-range to read, either 'time' in uUTC or 'samples'
 %                     (default = samples)
 %   begin           - [array] (opt) Start-point for the reading of data 
 %                     (either as a timepoint or samplenumber); Pass -1 to
@@ -28,18 +28,17 @@ function data = read_mef_ts_data_3p0(this, channel_path, varargin)
 %                     (default = -1)
 %
 % Output(s): 
-%   data            - [array] A vector of doubles holding the channel data
+%   data            - [array] channel data
 %
 % Note:
 %   When the 'range_type' is set to 'samples', the function returns the
-%   sampled data in sequence; if 'range_type' is set to 'time', the
-%   function returns the data with NaN values in place for the missing
-%   samples.
+%   sampled data in sequence; if 'range_type' is set to 'time'in uUTC, the
+%   function returns the data with NaN representing the missing samples.
 %
 % See also .
 
 % Richard J. Cui. Adapted: Fri 01/31/2020 11:59:20.073 PM
-% $Revision: 0.4 $  $Date: Wed 09/23/2020  4:39:11.382 PM $
+% $Revision: 0.5 $  $Date: Fri 09/25/2020  1:02:41.636 PM $
 %
 % Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -71,7 +70,7 @@ end % if
 % =========================================================================
 % main
 % =========================================================================
-data = read_mef_ts_data(ch_path, pw, rtype, begin, stop);
+data = decompress_mef_3p0(ch_path, pw, rtype, begin, stop); % mex
 
 end
 

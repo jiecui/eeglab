@@ -1,8 +1,8 @@
-function metadata = read_mef_header_3p0(this, varargin)
-% MEFSESSION_3P0.READ_MEF_HEADER_3P0 Retrieves header metadata from MEF 3.0 session
+function metadata = read_mef_info(this, varargin)
+% MEFSESSION_3P0.READ_MEF_INFO Retrieves metadata info from MEF 3.0 session
 %   
 % Syntax:
-%   metadata = read_mef_header_3p0(this)
+%   metadata = read_mef_info(this)
 %   metadata = __(__, sess_path)
 %   metadata = __(__, sess_path, password)
 %   metadata = __(__, sess_path, password, map_indices)
@@ -22,7 +22,7 @@ function metadata = read_mef_header_3p0(this, varargin)
 %
 % Note:
 % 
-% See also MEFSession_2p1.read_mef_header.
+% See also read_mef_info_3p0.
 
 % Copyright 2020 Richard J. Cui. Adapted: Sat 02/01/2020 10:30:50.708 PM
 % $Revision: 0.7 $  $Date: Fri 09/25/2020  9:41:56.944 AM $
@@ -52,7 +52,7 @@ end % if
 % main
 % =========================================================================
 pw = this.processPassword(password);
-metadata = read_mef_header_3p0(sess_path, pw, map_indices); % mex
+metadata = read_mef_info_3p0(sess_path, pw, map_indices); % mex
 
 end % function
 

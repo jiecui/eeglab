@@ -35,7 +35,7 @@ function [x, t] = importSignal(this, varargin)
 % See also .
 
 % Copyright 2020 Richard J. Cui. Created: Wed 02/05/2020 10:24:56.722 PM
-% $Revision: 0.4 $  $Date: Wed 09/23/2020  4:17:22.912 PM $
+% $Revision: 0.5 $  $Date: Fri 09/25/2020  9:41:56.944 AM $
 %
 % Rocky Creek Dr NE
 % Rochester, MN 55906, USA
@@ -144,7 +144,7 @@ if verbo
     fprintf(['-->Loading ' thisChannel ' ...'])
     clear thisChannel
 end % if
-x = this.read_mef_ts_data_3p0(wholename, pw, 'samples', se_index(1), se_index(2));
+x = this.read_mef_data(wholename, pw, 'samples', se_index(1), se_index(2));
 x = double(x(:)).'; % change to row vector
 % find the indices corresponding to physically collected data
 if nargout == 2
