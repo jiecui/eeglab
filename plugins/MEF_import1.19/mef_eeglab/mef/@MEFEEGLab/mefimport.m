@@ -1,5 +1,5 @@
 function OUTEEG = mefimport(this, INEEG, varargin)
-% MEFEEGLAB.MEFIMPORT Import MEF session data into EEG structure
+% MEFEEGLAB.MEFIMPORT Import MEF 2.1 session data into EEG structure
 %
 % Syntax:
 %   OUTEEG = mefimport(this, INEEG)
@@ -43,9 +43,9 @@ function OUTEEG = mefimport(this, INEEG, varargin)
 % See also eeglab, eeg_checkset, pop_mefimport. 
 
 % Copyright 2019-2020 Richard J. Cui. Created: Wed 05/08/2019  3:19:29.986 PM
-% $Revision: 2.0 $  $Date: Sat 03/21/2020 10:15:20.742 PM $
+% $Revision: 2.0 $  $Date: Mon 09/28/2020  3:06:06.030 PM $
 %
-% 1026 Rocky Creek Dr NE
+% Rocky Creek Dr NE
 % Rochester, MN 55906, USA
 %
 % Email: richard.cui@utoronto.ca

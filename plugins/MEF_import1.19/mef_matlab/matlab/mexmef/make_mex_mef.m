@@ -26,7 +26,7 @@ mex_mef = fileparts(mfilename('fullpath')); % directory of file make_mex_mef.m
 libmef_2p1 = fullfile(fileparts(fileparts(mex_mef)),'libmef','mef_2p1'); % library
 mexmef_2p1 = fullfile(mex_mef,'mef_2p1'); % mex
 
-cprintf('Keywords','===== Compiling c-mex for MEF 2.1 data =====\n')
+me_cprintf('Keywords','===== Compiling c-mex for MEF 2.1 data =====\n')
 fprintf('Building read_mef_info_2p1.mex*\n')
 mex('-output','read_mef_info_2p1',['-I' libmef_2p1],...
     fullfile(mexmef_2p1,'read_mef_info_mex_2p1.c'),...
@@ -50,7 +50,7 @@ libmef_3p0 = fullfile(fileparts(fileparts(mex_mef)),'libmef','mef_3p0'); % libra
 mexmef_3p0 = fullfile(mex_mef,'mef_3p0'); % mex
 
 fprintf('\n')
-cprintf('Keywords','===== Compiling c-mex for MEF 3.0 data =====\n')
+me_cprintf('Keywords','===== Compiling c-mex for MEF 3.0 data =====\n')
 fprintf('Building read_mef_info_3p0.mex*\n')
 mex('-output','read_mef_info_3p0',...
     ['-I' libmef_3p0],['-I' mexmef_3p0],...

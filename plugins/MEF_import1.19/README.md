@@ -1,7 +1,5 @@
-MEF 2.1, 3.0 EEGLAB Plugin MEF_import (Ver 1.19)
-===================================================
-
-_Caution: This version is under development, which may be unstable._
+An EEGLAB Plugin of MEF Dataset (Ver 1.19)
+==========================================
 
 [![Github license](https://img.shields.io/github/license/jiecui/MEF_import.svg)](https://github.com/jiecui/MEF_import/blob/master/LICENSE)
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/jiecui/MEF_import)](https://github.com/jiecui/MEF_import/releases/tag/v1.18)
@@ -9,7 +7,7 @@ _Caution: This version is under development, which may be unstable._
 
 Introduction
 ------------
-**MEF_import** is an EEGLAB plugin that imports data compressed in Multiscale Electrophysiology Format (or Mayo EEG File, MEF, see below) and Multiscale Annotation File (MAF) data into [EEGLAB](https://sccn.ucsd.edu/eeglab/index.php).
+**MEF_import** is an [EEGLAB](https://sccn.ucsd.edu/eeglab/index.php) plugin that imports data compressed in Multiscale Electrophysiology Format (or Mayo EEG File, MEF, see below) and Multiscale Annotation File (MAF) data into EEGLAB.
 Current version can import [MEF/MAF Version 2.1](https://github.com/benbrinkmann/mef_lib_2_1) and [MEF version 3.0](https://msel.mayo.edu/codes.html) files.
 Moreover, the functions provided in the folder "mef_matlab" can be used as a general tool to import MEF data into MATLAB.
 
@@ -25,9 +23,9 @@ Installation
 
    subsequently, change the folder name of the plugin 
 
-        git mv ./plugins/MEF_import ./plugins/MEF_import1.17.
+        git mv ./plugins/MEF_import ./plugins/MEF_import1.19.
 
-   On the other hand, if you have already installed it as a submodule, say MEF_import1.15, use ```git mv``` to rename it to MEF_import1.17 and then pull the changes from the remote.
+   On the other hand, if you have already installed it as a submodule, say MEF_import1.18, use ```git mv``` to rename it to MEF_import1.19 and then pull the changes from the remote.
 1. Launch EEGLAB in MATLAB, e.g. ```>> eeglab```
 1. Follow the instructions on the screen
 
@@ -39,7 +37,7 @@ After launch EEGLAB, run 'make_mex_mef.m' to build the mex files for different o
 Data samples
 ------------
 1. Two small sample datasets, of MEF 2.1 and MEF 3.0, respectively, are provided to test the code.
-1. The folder of the sample datasets is 'sample_mef' (/root/directory/of/eeglab/plugins/MEF_import1.14/sample_mef).
+1. The folder of the sample datasets is 'sample_mef' (/root/directory/of/eeglab/plugins/MEF_import1.19/sample_mef).
 Two data samples are included as subdirectories: 'mef_2p1' and 'mef_3p0.mefd'.
 1. The directory 'mef_2p1' includes the session of MEF 2.1 signal (passwords: 'erlichda' for Subject password; 'sieve' for Session password; no password required for Data password).
 1. The directory 'mef_3p0' includes the session of MEF 3.0 signal (level 1 password: password1; level 2 passowrd: password2; access level: 2).
@@ -67,7 +65,7 @@ mef_ver = 3.0;
 % set the session path
 % --------------------
 % please replace the root directory of eeglab with the directory on your system
-sess_path = '/root/directory/of/eeglab/plugins/MEF_import1.14/sample_mef/mef_3p0.mefd';
+sess_path = '/root/directory/of/eeglab/plugins/MEF_import1.19/sample_mef/mef_3p0.mefd';
 
 % select channels
 % ---------------
@@ -108,17 +106,13 @@ From EEGLAB GUI, select File > Import event info > From Mayo Clinic .maf > MEF 2
 
 Currently, the importer can only recognize events of seizure onset and seizure offset.
 
-Acknowledgment
---------------
-Multiscale Electrophysiology Format (MEF) is a novel electrophysiology file format designed for large-scale storage of electrophysiological recordings.
+Multiscale Electrophysiology Format (MEF)
+-----------------------------------------
+MEF is a novel electrophysiology file format designed for large-scale storage of electrophysiological recordings.
 MEF can achieve significant data size reduction when compared to existing techniques with stat-of-the-art lossless data compression.
 It satisfies the Health Insurance Portability and Accountability Act (HIPAA) to encrypt any patient protected health information transmitted over a public network.
 
 The details of MEF file can be found at [here](https://www.mayo.edu/research/labs/epilepsy-neurophysiology/mef-example-source-code) from [Mayo Systems Electrophysiology Lab](http://msel.mayo.edu/) and [here](https://main.ieeg.org/?q=node/28) on [International Epilepsy Portal](https://main.ieeg.org). 
-
-The c-mex code to read MEF 2.1 data is mainly developed from the work done by [Ben Brinkmann](https://github.com/benbrinkmann/mef_lib_2_1), Matt Stead, Dan Crepeau, and [Gregory Worrell](https://www.mayo.edu/research/faculty/worrell-gregory-a-m-d-ph-d/bio-00027235) from [Bioelectronics Neurophysiology and Engineering Lab](https://www.mayo.edu/research/labs/bioelectronics-neurophysiology-engineering/overview)  Mayo Clinic, Rochester MN.
-
-The c-mex code for MEF 3.0 is mainly adapted from the work by Max van den Boom at Mayo Clinic, Rochester MN.
 
 License
 -------

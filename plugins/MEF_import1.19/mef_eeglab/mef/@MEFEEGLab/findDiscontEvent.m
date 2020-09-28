@@ -21,9 +21,9 @@ function dc_event = findDiscontEvent(this, start_end, unit)
 % See also .
 
 % Copyright 2020 Richard J. Cui. Created: Sun 01/12/2020  2:35:48.393 PM
-% $Revision: 0.3 $  $Date: Sun 02/09/2020  4:50:54.974 PM $
+% $Revision: 0.4 $  $Date: Mon 09/28/2020  3:06:06.030 PM $
 %
-% 1026 Rocky Creek Dr NE
+% Rocky Creek Dr NE
 % Rochester, MN 55906, USA
 %
 % Email: richard.cui@utoronto.ca

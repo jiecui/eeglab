@@ -1,14 +1,14 @@
-function count = cprintf(style,format,varargin)
-% CPRINTF displays styled formatted text in the Command Window
+function count = me_cprintf(style,format,varargin)
+% ME_CPRINTF displays styled formatted text in the Command Window
 %
 % Syntax:
-%    count = cprintf(style,format,...)
+%    count = me_cprintf(style,format,...)
 %
 % Description:
-%    CPRINTF processes the specified text using the exact same FORMAT
+%    ME_CPRINTF processes the specified text using the exact same FORMAT
 %    arguments accepted by the built-in SPRINTF and FPRINTF functions.
 %
-%    CPRINTF then displays the text in the Command Window using the
+%    ME_CPRINTF then displays the text in the Command Window using the
 %    specified STYLE argument. The accepted styles are those used for
 %    Matlab's syntax highlighting (see: File / Preferences / Colors / 
 %    M-file Syntax Highlighting Colors), and also user-defined colors.
@@ -34,7 +34,7 @@ function count = cprintf(style,format,varargin)
 %          '*Blue' is bold blue;
 %          '*Comments' is bold green etc.
 %    Note: Matlab does not currently support both bold and underline,
-%          only one of them can be used in a single cprintf command. But of
+%          only one of them can be used in a single me_cprintf command. But of
 %          course bold and underline can be mixed by using separate commands.
 %
 %    STYLE also accepts a regular Matlab RGB vector, that can be underlined
@@ -43,21 +43,21 @@ function count = cprintf(style,format,varargin)
 %    STYLE is case-insensitive and accepts unique partial strings just
 %    like handle property names.
 %
-%    CPRINTF by itself, without any input parameters, displays a demo
+%    ME_CPRINTF by itself, without any input parameters, displays a demo
 %
 % Example:
-%    cprintf;   % displays the demo
-%    cprintf('text',   'regular black text');
-%    cprintf('hyper',  'followed %s','by');
-%    cprintf('key',    '%d colored', 4);
-%    cprintf('-comment','& underlined');
-%    cprintf('err',    'elements\n');
-%    cprintf('cyan',   'cyan');
-%    cprintf('_green', 'underlined green');
-%    cprintf(-[1,0,1], 'underlined magenta');
-%    cprintf([1,0.5,0],'and multi-\nline orange\n');
-%    cprintf('*blue',  'and *bold* (R2011b+ only)\n');
-%    cprintf('string');  % same as fprintf('string') and cprintf('text','string')
+%    me_cprintf;   % displays the demo
+%    me_cprintf('text',   'regular black text');
+%    me_cprintf('hyper',  'followed %s','by');
+%    me_cprintf('key',    '%d colored', 4);
+%    me_cprintf('-comment','& underlined');
+%    me_cprintf('err',    'elements\n');
+%    me_cprintf('cyan',   'cyan');
+%    me_cprintf('_green', 'underlined green');
+%    me_cprintf(-[1,0,1], 'underlined magenta');
+%    me_cprintf([1,0.5,0],'and multi-\nline orange\n');
+%    me_cprintf('*blue',  'and *bold* (R2011b+ only)\n');
+%    me_cprintf('string');  % same as fprintf('string') and me_cprintf('text','string')
 %
 % Bugs and suggestions:
 %    Please send to Yair Altman (altmany at gmail dot com)
@@ -71,13 +71,13 @@ function count = cprintf(style,format,varargin)
 %
 % Limitations:
 %    1. In R2011a and earlier, a single space char is inserted at the
-%       beginning of each CPRINTF text segment (this is ok in R2011b+).
+%       beginning of each ME_CPRINTF text segment (this is ok in R2011b+).
 %
 %    2. In R2011a and earlier, consecutive differently-colored multi-line
-%       CPRINTFs sometimes display incorrectly on the bottom line.
+%       ME_CPRINTFS sometimes display incorrectly on the bottom line.
 %       As far as I could tell this is due to a Matlab bug. Examples:
-%         >> cprintf('-str','under\nline'); cprintf('err','red\n'); % hidden 'red', unhidden '_'
-%         >> cprintf('str','regu\nlar'); cprintf('err','red\n'); % underline red (not purple) 'lar'
+%         >> me_cprintf('-str','under\nline'); me_cprintf('err','red\n'); % hidden 'red', unhidden '_'
+%         >> me_cprintf('str','regu\nlar'); me_cprintf('err','red\n'); % underline red (not purple) 'lar'
 %
 %    3. Sometimes, non newline ('\n')-terminated segments display unstyled
 %       (black) when the command prompt chevron ('>>') regains focus on the
@@ -277,7 +277,7 @@ function [underlineFlag,boldFlag,style] = processStyleInfo(style)
           style = style(~boldIdx);
       end
       if underlineFlag && boldFlag
-          warning('YMA:cprintf:BoldUnderline','Matlab does not support both bold & underline')
+          warning('YMA:me_cprintf:BoldUnderline','Matlab does not support both bold & underline')
       end
 
       % Check if the remaining style sting is a numeric vector
@@ -297,7 +297,7 @@ function [underlineFlag,boldFlag,style] = processStyleInfo(style)
       style = getColorStyle(style);
 
   elseif ~ischar(style)
-      error('YMA:cprintf:InvalidStyle','Invalid style - see help section for a list of valid style values')
+      error('YMA:me_cprintf:InvalidStyle','Invalid style - see help section for a list of valid style values')
 
   % Style name
   else
@@ -309,11 +309,11 @@ function [underlineFlag,boldFlag,style] = processStyleInfo(style)
 
       % No match - error
       if isempty(matches)
-          error('YMA:cprintf:InvalidStyle','Invalid style - see help section for a list of valid style values')
+          error('YMA:me_cprintf:InvalidStyle','Invalid style - see help section for a list of valid style values')
 
       % Too many matches (ambiguous) - error
       elseif length(matches) > 1
-          error('YMA:cprintf:AmbigStyle','Ambiguous style name - supply extra characters for uniqueness')
+          error('YMA:me_cprintf:AmbigStyle','Ambiguous style name - supply extra characters for uniqueness')
 
       % Regular text
       elseif matches == 1
@@ -518,26 +518,26 @@ function cells = m2c(data)
 
 % Display the help and demo
 function showDemo(majorVersion,minorVersion)
-  fprintf('cprintf displays formatted text in the Command Window.\n\n');
-  fprintf('Syntax: count = cprintf(style,format,...);  click <a href="matlab:help cprintf">here</a> for details.\n\n');
+  fprintf('me_cprintf displays formatted text in the Command Window.\n\n');
+  fprintf('Syntax: count = me_cprintf(style,format,...);  click <a href="matlab:help me_cprintf">here</a> for details.\n\n');
   url = 'http://UndocumentedMatlab.com/blog/cprintf/';
   fprintf(['Technical description: <a href="' url '">' url '</a>\n\n']);
   fprintf('Demo:\n\n');
   boldFlag = majorVersion>7 || (majorVersion==7 && minorVersion>=13);
-  s = ['cprintf(''text'',    ''regular black text'');' 10 ...
-       'cprintf(''hyper'',   ''followed %s'',''by'');' 10 ...
-       'cprintf(''key'',     ''%d colored'',' num2str(4+boldFlag) ');' 10 ...
-       'cprintf(''-comment'',''& underlined'');' 10 ...
-       'cprintf(''err'',     ''elements:\n'');' 10 ...
-       'cprintf(''cyan'',    ''cyan'');' 10 ...
-       'cprintf(''_green'',  ''underlined green'');' 10 ...
-       'cprintf(-[1,0,1],  ''underlined magenta'');' 10 ...
-       'cprintf([1,0.5,0], ''and multi-\nline orange\n'');' 10];
+  s = ['me_cprintf(''text'',    ''regular black text'');' 10 ...
+       'me_cprintf(''hyper'',   ''followed %s'',''by'');' 10 ...
+       'me_cprintf(''key'',     ''%d colored'',' num2str(4+boldFlag) ');' 10 ...
+       'me_cprintf(''-comment'',''& underlined'');' 10 ...
+       'me_cprintf(''err'',     ''elements:\n'');' 10 ...
+       'me_cprintf(''cyan'',    ''cyan'');' 10 ...
+       'me_cprintf(''_green'',  ''underlined green'');' 10 ...
+       'me_cprintf(-[1,0,1],  ''underlined magenta'');' 10 ...
+       'me_cprintf([1,0.5,0], ''and multi-\nline orange\n'');' 10];
    if boldFlag
        % In R2011b+ the internal bug that causes the need for an extra space
        % is apparently fixed, so we must insert the sparator spaces manually...
        % On the other hand, 2011b enables *bold* format
-       s = [s 'cprintf(''*blue'',   ''and *bold* (R2011b+ only)\n'');' 10];
+       s = [s 'me_cprintf(''*blue'',   ''and *bold* (R2011b+ only)\n'');' 10];
        s = strrep(s, ''')',' '')');
        s = strrep(s, ''',5)',' '',5)');
        s = strrep(s, '\n ','\n');

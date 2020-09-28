@@ -48,9 +48,9 @@ function [EEG, com] = pop_mefimport(EEG, varargin)
 % See also EEGLAB, mefimport.
 
 % Copyright 2019-2020 Richard J. Cui. Created: Tue 05/07/2019 10:33:48.169 PM
-% $Revision: 1.8 $  $Date: Thu 02/20/2020 12:11:06.383 PM $
+% $Revision: 1.9 $  $Date: Mon 09/28/2020  3:06:06.030 PM $
 %
-% 1026 Rocky Creek Dr NE
+% Rocky Creek Dr NE
 % Rochester, MN 55906, USA
 %
 % Email: richard.cui@utoronto.ca

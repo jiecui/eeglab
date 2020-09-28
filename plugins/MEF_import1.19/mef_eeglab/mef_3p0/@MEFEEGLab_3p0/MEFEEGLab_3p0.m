@@ -20,9 +20,9 @@ classdef MEFEEGLab_3p0 < MEFSession_3p0 & MEFEEGLab
     % See also .
     
     % Copyright 2020 Richard J. Cui. Created: Sun 02/09/2020  3:45:09.696 PM
-    % $Revision: 0.3 $  $Date: Wed 03/11/2020 11:29:42.597 PM $
+    % $Revision: 0.4 $  $Date: Mon 09/28/2020  3:06:06.030 PM $
     %
-    % 1026 Rocky Creek Dr NE
+    % Rocky Creek Dr NE
     % Rochester, MN 55906, USA
     %
     % Email: richard.cui@utoronto.ca

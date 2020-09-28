@@ -24,13 +24,12 @@ function vers = eegplugin_mefimport(fig, try_strings, catch_strings)
 % See also .
 
 % Copyright 2019-2020 Richard J. Cui. Created: Sun 04/28/2019  9:51:01.691 PM
-% $Revision: 2.0 $  $Date: Sun 06/28/2020  1:25:42.115 AM $
+% $Revision: 2.1 $  $Date: Mon 09/28/2020  3:06:06.030 PM $
 %
-% Multimodal Neuroimaging Lab
-% Mayo Clinic St. Mary Campus
-% Rochester, MN 55905, USA
+% 1026 Rocky Creek Dr NE
+% Rochester, MN 55906, USA
 %
-% Email: richard.cui@utoronto.ca (permanent), Cui.Jie@mayo.edu (official)
+% Email: richard.jie.cui@gmail.com
 
 % version info
 % ------------
