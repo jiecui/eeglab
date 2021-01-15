@@ -89,6 +89,7 @@ g = finputcheck( options, ...
                  { 'filename'   { 'string';'cell' }    []   '';
                    'filepath'   'string'               []   '';
                    'check'      'string'               { 'on';'off' }   'on';
+                   'verbose'    'string'               { 'on';'off' }   'on';
                    'loadmode'   { 'string';'integer' } { { 'info' 'all' } [] }  'all';
                    'eeg'        'struct'               []   struct('data',{}) }, 'pop_loadset');
 if ischar(g), error(g); end
@@ -114,12 +115,17 @@ else
         % read file
         % ---------
         filename = fullfile(g.filepath, g.filename{ifile});
-        fprintf('pop_loadset(): loading file %s ...\n', filename);
-        %try
-        TMPVAR = load('-mat', filename);
-        %catch,
-        %    error([ filename ': file is protected or does not exist' ]);
-        %end
+        if strcmpi(g.verbose, 'on')
+            fprintf('pop_loadset(): loading file %s ...\n', filename);
+        end
+        if strcmpi(g.loadmode, 'info')
+            TMPVAR = load('-mat', filename, '-regexp', '^((?!data).)*$');
+            if isfield(TMPVAR, 'setname')
+                TMPVAR.data = 'in set file';
+            end
+        else
+            TMPVAR = load('-mat', filename);
+        end
 
         % variable not found
         % ------------------

@@ -141,7 +141,7 @@ if length(EEG) > 1
     if nargin < 2
         [ EEG, com ] = eeg_eval( 'pop_subcomp', EEG, 'warning', 'on', 'params', { components } );
     else
-        [ EEG, com ] = eeg_eval( 'pop_subcomp', EEG, 'params', { components } );
+        [ EEG, com ] = eeg_eval( 'pop_subcomp', EEG, 'params', { components, plotag, keepcomp } );
     end
     if isempty( components )
         com = [ com ' % [] or '' means removing components flaged for rejection' ];
@@ -150,12 +150,12 @@ if length(EEG) > 1
 end
 
 if isempty(components)
-	if ~isempty(EEG.reject.gcompreject)
-      		components = find(EEG.reject.gcompreject == 1);
-   	else
-        	fprintf('Warning: no components specified, no rejection performed\n');
-         	return;
-   	end
+    if ~isempty(EEG.reject.gcompreject)
+        components = find(EEG.reject.gcompreject == 1);
+    else
+        fprintf('Warning: no components specified, no rejection performed\n');
+        return;
+    end
 else
     if keep_flag == 1; components  = setdiff_bc([1:size(EEG.icaweights,1)], components); end
     if (max(components) > size(EEG.icaweights,1)) || min(components) < 1
@@ -163,7 +163,7 @@ else
     end
 end
 
-fprintf('Computing projection ....\n');
+fprintf('Computing projection and removing %d components ....\n', length(components));
 component_keep = setdiff_bc(1:size(EEG.icaweights,1), components);
 compproj = EEG.icawinv(:, component_keep)*eeg_getdatact(EEG, 'component', component_keep, 'reshape', '2d');
 compproj = reshape(compproj, size(compproj,1), EEG.pnts, EEG.trials);
@@ -174,7 +174,7 @@ if nargin < 2 || plotag ~= 0
 
     ButtonName = 'continue';
     while ~strcmpi(ButtonName, 'Cancel') & ~strcmpi(ButtonName, 'Accept')
-        ButtonName=questdlg2( [ 'Please confirm. Are you sure you want to remove these components?' ], ...
+        ButtonName=questdlg2( [ 'Please confirm your choice. Are you sure you want to remove the selected components from the data?' ], ...
                              'Confirmation', 'Cancel', 'Plot ERPs', 'Plot single trials', 'Accept', 'Accept');
         if strcmpi(ButtonName, 'Plot ERPs')
             if EEG.trials > 1
