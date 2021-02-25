@@ -240,7 +240,6 @@ if nargin < 1 && ~isdeployed
         eeglabpath2 = mywhich('eeglab.m');
     end
     if ~isempty(eeglabpath2)
-        %evalin('base', 'clear classes updater;'); % this clears all the variables
         eeglabpath2 = eeglabpath2(1:end-length('eeglab.m'));
         tmpWarning = warning('query', 'backtrace'); 
         warning off backtrace;
@@ -502,7 +501,7 @@ catchstrs.load_study             = e_load_study;
 
 % create eeglab figure
 % --------------------
-if ismatlab && ~strcmpi(onearg, 'nogui')
+if ~strcmpi(onearg, 'nogui')
     eeg_mainfig(onearg);
 end
 
@@ -693,7 +692,7 @@ onepochchan       = 'startup:off;continuous:off;chanloc:on';
 onstudy           = 'startup:off;epoch:off;continuous:off;study:on';
 onstudynoroi      = 'startup:off;epoch:off;continuous:off;study:on;roi:off';
 
-if ismatlab && ~strcmpi(onearg, 'nogui')
+if ~strcmpi(onearg, 'nogui')
     W_MAIN = findobj('tag', 'EEGLAB');
     EEGUSERDAT = get(W_MAIN, 'userdata');
     set(W_MAIN, 'MenuBar', 'none');
@@ -874,7 +873,7 @@ if ismatlab && ~strcmpi(onearg, 'nogui')
     if ~isdeployed
         %newerVersionMenu = eegmenu( false,  help_m, 'Label', 'Upgrade to the Latest Version'          , 'userdata', on, 'ForegroundColor', [0.6 0 0]);
         eegmenu( false,  help_m, 'Label', 'About EEGLAB'                           , 'userdata', on, 'CallBack', 'pophelp(''eeglab'');');
-        eegmenu( false,  help_m, 'Label', 'Check for EEGLAB update'                , 'userdata', on, 'CallBack', 'eeglab_update(''menucall'');');
+        eegmenu( false,  help_m, 'Label', 'Check for EEGLAB update'                , 'userdata', on, 'CallBack', 'eeglab_update;');
         eegmenu( false,  help_m, 'Label', 'About EEGLAB help'                      , 'userdata', on, 'CallBack', 'pophelp(''eeg_helphelp'');');
         eegmenu( false,  help_m, 'Label', 'EEGLAB menus'                           , 'userdata', on, 'CallBack', 'pophelp(''eeg_helpmenu'');','separator','on');
 
@@ -899,24 +898,25 @@ if ismatlab && ~strcmpi(onearg, 'nogui')
 end
 
 statusconnection = 1;
-if isdeployed || ismcc
-%#function pop_reref
-%#function netICL.mat netICL_beta.mat netICL_lite.mat pop_icflag
+eeglabVersionStatus = [];
+if isdeployed || (exist('ismcc') && ismcc)
     disp('Loading plugins');
     funcname = { ...
                  @eegplugin_eepimport ...
+                 @eegplugin_iclabel, ...
+                 @eegplugin_VisEd, ...
+                 @eegplugin_bids, ...
+                 @eegplugin_bidsvalidator, ...
                  @eegplugin_bva_io, ...
                  @eegplugin_clean_rawdata, ...
                  @eegplugin_dipfit, ...
                  @eegplugin_egilegacy, ...
                  @eegplugin_firfilt, ...
-                 @eegplugin_iclabel, ...
-                 @eegplugin_mffmatlabio, ...
+                 @eegplugin_iirfilt, ...
+                 @eegplugin_musedirect, ...
                  @eegplugin_musemonitor, ...
                  @eegplugin_neuroscanio, ...
                  @eegplugin_xdfimport, ...
-                 @eegplugin_iirfilt, ...
-                 @eegplugin_VisEd, ...
                };
     for indf = 1:length(funcname)
         pluginfun = funcname{indf};
@@ -944,7 +944,7 @@ else
     % ------------------
     dircontent  = dir(fullfile(eeglabp, 'plugins'));
     if ~isfield(dircontent, 'folder')
-        [dircontent(:).folder] = deal(fullfile(p, 'plugins'));
+        [dircontent(:).folder] = deal(fullfile(eeglabp, 'plugins'));
     end
     
     % scan local plugin folder
@@ -964,9 +964,10 @@ else
 	if option_checkversion && ismatlab
         disp('Retrieving plugin versions from server...');
         try
-            pluginTmp = plugin_getweb('', pluginlist, 'newlist');
+            [pluginTmp, eeglabVersionStatus] = plugin_getweb('startup', pluginlist);
         catch
             disp('Issue with retrieving statistics for extensions');
+            pluginTmp = [];
         end
         if ~isempty(pluginTmp) && isfield(pluginTmp, 'name') && isfield(pluginTmp, 'version')
             pluginstats.name    = { pluginTmp.name };
@@ -1144,7 +1145,7 @@ if ~strcmp(dipplotpath,dipfitpath)
     addpath(dipfitpath,'-begin');
 end
 
-if ~ismatlab || strcmpi(onearg, 'nogui')
+if strcmpi(onearg, 'nogui')
     return;
 end
 
@@ -1185,20 +1186,14 @@ if nargout < 1
 end
 
 % check if update is available
-eeglab_update;
-
-if ~ismatlab
-    close(W_MAIN);
+if ismatlab
+    eeglab_update(eeglabVersionStatus);
 end
 
 % REMOVED MENUS
 	%eegmenu( false,  tools_m, 'Label', 'Automatic comp. reject',  'enable', 'off', 'CallBack', '[EEG LASTCOM] = pop_rejcomp(EEG); eegh(LASTCOM); if ~isempty(LASTCOM), eeg_store(CURRENTSET); end;');
 	%eegmenu( false,  tools_m, 'Label', 'Reject (synthesis)' , 'Separator', 'on', 'CallBack', '[EEG LASTCOM] = pop_rejall(EEG); eegh(LASTCOM); if ~isempty(LASTCOM), eeg_store; end; eeglab(''redraw'');');
-
-     function command_on_update_menu_click(callerHandle, tmp, eeglabUpdater, installDirectory, goOneFolderLevelIn, backGroundColor)
-         postInstallCallbackString = 'clear all function functions; eeglab';
-         eeglabUpdater.launchGui(installDirectory, goOneFolderLevelIn, backGroundColor, postInstallCallbackString);
-    
+   
 %     
 % --------------------
 % draw the main figure
@@ -1234,6 +1229,10 @@ else
     FONTNAME        = '';
     FONTSIZE        = 11;
 end    
+if ~ismatlab
+    WINMAXX  = WINMAXX*1.35;
+    WINY     = WINY*1.4;
+end
 
 hh = findobj('tag', 'EEGLAB');
 if ~isempty(hh)
@@ -1247,6 +1246,9 @@ if ~isempty(numVersion)
     txtVersion = [ 'EEGLAB v' txtVersion ];
 else
     txtVersion = [ 'EEGLAB ' txtVersion ];    
+end
+if ~ismatlab && ismac
+    txtVersion = [ txtVersion ' - menu is on the top bar' ];
 end
 
 % create figures
@@ -2083,7 +2085,7 @@ function [name, vers] = parsepluginname(dirName, funcname)
     end
     
     % check with function name and change version if necessary (for loadhdf5)
-    if nargin > 1 && contains(dirName, funcname)
+    if nargin > 1 && ~isempty(strfind(dirName, funcname))
         name1 = funcname;
         vers2 = dirName(length(funcname)+1:end);
         if ~isempty(vers2)
@@ -2099,12 +2101,7 @@ function [name, vers] = parsepluginname(dirName, funcname)
 % to the admin folder
 function res = ismatlab
 
-    v = version;
-    if v(1) > '5'
-        res = 1;
-    else
-        res = 0;
-    end
+res = exist('OCTAVE_VERSION', 'builtin') == 0;
     
 function res = mywhich(varargin)
 try

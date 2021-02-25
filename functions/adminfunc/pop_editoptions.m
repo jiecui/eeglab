@@ -96,7 +96,7 @@ end
 % parse the eeg_options file
 % ----------------------------
 eeglab_options;
-if isdeployed || ismcc
+if isdeployed || (exist('ismcc') && ismcc)
     filename = which('eeg_options.txt');
     eegoptionbackup = which('eeg_optionsbackup.txt');
 else
@@ -145,26 +145,27 @@ optionsToShow = {
     'option_rememberfolder' ...
     'option_allmenus'  ...
     'option_checkversion' ...
-    'option_updateeeglab' ...
     'option_showadvanced' ...
     'option_cachesize' };
 
 % remove advanced options if necessary
-if ~option_showadvanced
-    % remove options 
-    for iOpt = length(opt):-1:1
-        if ~isempty(opt(iOpt).varname) && ~ismember(opt(iOpt).varname, optionsToShow)
-            opt(iOpt) = [];
+if isempty(varargin)
+    if ~option_showadvanced
+        % remove options 
+        for iOpt = length(opt):-1:1
+            if ~isempty(opt(iOpt).varname) && ~ismember(opt(iOpt).varname, optionsToShow)
+                opt(iOpt) = [];
+            end
         end
-    end
-    % remove header not serving any option
-    for iOpt = length(opt)-1:-1:1
-        if isempty(opt(iOpt).varname) && isempty(opt(iOpt+1).varname)
-            opt(iOpt) = [];
+        % remove header not serving any option
+        for iOpt = length(opt)-1:-1:1
+            if isempty(opt(iOpt).varname) && isempty(opt(iOpt+1).varname)
+                opt(iOpt) = [];
+            end
         end
     end
 end
-    
+
 if nargin < 2
     geometry = { [6 1] };
     tmpfile = fullfile(filepath, filename);
