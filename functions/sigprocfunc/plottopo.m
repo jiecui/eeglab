@@ -154,6 +154,7 @@ else
 end
 g = finputcheck(options, { 'chanlocs'  ''    []          '';
                     'frames'    'integer'               [1 Inf]     size(data,2);
+                    'times' 'float'               []          0;
                     'chans'     { 'integer','string' }  { [1 Inf] [] }    0;
                     'geom'      'integer'               [1 Inf]     [];
                     'channames' 'string'                []          '';
@@ -394,8 +395,7 @@ end
         xmin = 0;
         xmax = g.frames-1;
     else
-        dx = (xmax-xmin)/(g.frames-1);
-        x=xmin*ones(1,g.frames)+dx*(0:g.frames-1); % compute x-values
+        x = g.times;
     end
     if xmax<=xmin,
         fprintf('plottopo() - xmax must be > xmin.\n')
