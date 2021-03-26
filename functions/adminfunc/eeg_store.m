@@ -66,6 +66,9 @@ function [ALLEEG, EEG, storeSetIndex] = eeg_store(ALLEEG, EEG, storeSetIndex, va
 % check parameter consistency
 % ------------------------------
 if nargin >= 3
+    if isempty(storeSetIndex) == true
+        storeSetIndex = 0;
+    end % if
     if length(EEG) ~= length(storeSetIndex) && storeSetIndex(1) ~= 0
         error('Length of input dataset structure must equal the length of the index array');
     end
