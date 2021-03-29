@@ -164,7 +164,7 @@ if mod(iter,1) ~= 0
 end
 
 % Check that data in average reference:
-if ~strcmp(EEG.ref,'averef')
+if ~strcmp(EEG.ref,'average') % eeglab 2021a
     warning('The data is not in average reference. Note that tesa_SOUND returns the data in the average reference.')
 end
 
