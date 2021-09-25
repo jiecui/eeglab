@@ -71,7 +71,12 @@ else
     % account for old calling format
     % ------------------------------
     if ~strcmpi(inputname, 'filename') && ~strcmpi(inputname, 'filepath') && ~strcmpi(inputname, 'eeg') && ~strcmpi(inputname, 'loadmode') && ~strcmpi(inputname, 'check')
-        options = { 'filename' inputname }; 
+        if nargin == 1
+            [filepath, filename, ext] = fileparts(inputname);
+            options = { 'filename' [filename ext], 'filepath' filepath }; 
+        else
+            options = { 'filename' inputname }; 
+        end
         if nargin > 1
             options = { options{:} 'filepath' inputpath }; 
         end
@@ -198,10 +203,12 @@ else
             end
         else
             EEG = checkoldformat(TMPVAR);
+            [ EEG.filepath EEG.filename ext ] = fileparts( g.filename{ifile} );
+            EEG.filename = [ EEG.filename ext ];
             if ~isfield( EEG, 'data')
                 error('pop_loadset(): not an EEG dataset file');
             end
-            if ischar(EEG.data), EEG.filepath = g.filepath; end
+            if ischar(EEG.data) && ~isempty(g.filepath), EEG.filepath = g.filepath; end
         end
         
         %ALLEEGLOC = pop_newset(ALLEEGLOC, EEG, 1);

@@ -150,6 +150,8 @@
 
 function varargout = eeglab( onearg )
 
+persistent warningShowed;
+
 ver = version;
 if strcmpi(ver, '9.4.0.813654 (R2018a)')
     disp('Link to install <a href="https://www.mathworks.com/downloads/web_downloads/download_update?release=R2018a&s_tid=ebrg_R2018a_2_1757132">2018a Update 2</a>');
@@ -158,6 +160,18 @@ end
 
 if nargout > 0
     varargout = { [] [] 0 {} [] };
+end
+
+% Warning if in toolbox folder
+% ----------------------------
+if isempty(warningShowed)
+    filterPath = fileparts(fileparts(fileparts(which('filter'))));
+    eeglabPath = fileparts(fileparts(which('eeglab')));
+    if ~isempty(strfind(filterPath, eeglabPath))
+        fprintf(2, 'Warning: EEGLAB is in the MATLAB toolbox folder which is not recommended\n');
+        fprintf(2, '         You may experience errors if a plugin overloads a MATLAB function\n');
+    end    
+    warningShowed = true;
 end
 
 % check Matlab version
@@ -386,6 +400,7 @@ if nargin < 1 || exist('EEG') ~= 1
         disp('Warning: screen color depth too low, some colors will be inaccurate in time-frequency plots');
     end
 end
+if isempty(CURRENTSTUDY) CURRENTSTUDY = 0; end
 
 versL = ~option_allmenus;
 if nargin == 1
@@ -905,11 +920,10 @@ eeglabVersionStatus = [];
 if isdeployed || (exist('ismcc') && ismcc)
     disp('Loading plugins');
     funcname = { ...
-                 @eegplugin_eepimport ...
+                 @eegplugin_eepimport, ...
                  @eegplugin_iclabel, ...
                  @eegplugin_VisEd, ...
                  @eegplugin_bids, ...
-                 @eegplugin_bidsvalidator, ...
                  @eegplugin_bva_io, ...
                  @eegplugin_clean_rawdata, ...
                  @eegplugin_dipfit, ...
@@ -919,6 +933,8 @@ if isdeployed || (exist('ismcc') && ismcc)
                  @eegplugin_musedirect, ...
                  @eegplugin_musemonitor, ...
                  @eegplugin_neuroscanio, ...
+                 @eegplugin_scd, ...
+                 @eegplugin_snapmaster, ...
                  @eegplugin_xdfimport, ...
                };
     for indf = 1:length(funcname)
@@ -1098,8 +1114,8 @@ else
         if ~exist('mff_import', 'file')
             neuro_m = findobj(W_MAIN, 'tag', 'import data');
             cb_mff = [ 'if ~plugin_askinstall(''mffmatlabio'', ''mff_import''), return; end;' ...
-                       'eval(char(get(findobj(''label'', ''Import Philips .mff file''), ''callback'')));' ];
-            eegmenu( false,  neuro_m, 'Label', 'Import Philips .mff file', 'CallBack', cb_mff, 'separator', 'on');
+                       'eval(char(get(findobj(''label'', ''Import EGI .mff file''), ''callback'')));' ];
+            eegmenu( false,  neuro_m, 'Label', 'Import EGI .mff file', 'CallBack', cb_mff, 'separator', 'on');
         end
         if ~exist('eegplugin_neuroscanio', 'file')
             neuro_m = findobj(W_MAIN, 'tag', 'import data');
