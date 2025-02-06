@@ -127,6 +127,8 @@
 %        % Load polhemus file, delete two channels, convert to polar (see
 %        % CART2TOPO for arguments) and save into 'mychans.loc'.
 %
+% EEG = pop_chanedit(EEG, 'lookup','Standard-10-5-Cap385.sfp');
+%
 % Author: Arnaud Delorme, CNL / Salk Institute, 20 April 2002
 %
 % See also: READLOCS
@@ -279,7 +281,7 @@ if ~isempty(indx_tmp)
     flag_replurchan = varargin{indx_tmp+1};
 end
 
-if nargin < 3 && isstruct(chans)
+if nargin < 3 && isstruct(chans) 
 
     totaluserdat = {};
     % lookup channel locations if necessary
@@ -1013,7 +1015,7 @@ else
                         for index = 2:length(tmpdiff)
                             fprintf(',%s', chans(tmpdiff(index)).labels);
                         end
-                        fprintf('%s\n');
+                        fprintf('\n');
                     end
                     if ~isfield(chans, 'type'), chans(1).type = []; end
                 end
