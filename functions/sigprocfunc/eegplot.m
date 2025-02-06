@@ -1546,7 +1546,7 @@ else
         for index = 1:length(event2plot)
             %Just repeat for the first one
             if index == 1
-                EVENTFONT = ' \fontsize{10} ';
+                EVENTFONT = '  ';
             end
             
             % draw latency line
@@ -1564,6 +1564,7 @@ else
             if length(evntxt)>MAXEVENTSTRING, evntxt = [ evntxt(1:MAXEVENTSTRING-1) '...' ]; end % truncate
             try, 
                 tmph2 = text(ax0, [tmplat], ylims(2)-0.005, [EVENTFONT evntxt], ...
+				    'fontsize', 10, ...
                                     'color', g.eventcolors{ event2plot(index) }, ...
                                     'horizontalalignment', 'left',...
                                     'rotation',90);
