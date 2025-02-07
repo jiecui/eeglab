@@ -16,7 +16,8 @@
 %                   of event type(s) to apply the latency shift to. Default
 %                   is all events.
 %   'force'       - ['on|'off'] force processing data containing 'boundary'
-%                   events. Default is 'off'.
+%                   events. Default is 'off' from the GUI but 'on' from the
+%                   command line for backward compatibility.
 %
 % Outputs:
 %   EEG           - Input dataset with latencies shifted
@@ -134,10 +135,17 @@ end
 
 g = finputcheck(options, { 'addms'       'real'  []    [];
                            'addsamples'  'real'  []    [];
-                           'force'       'string' { 'on' 'off' }   'off';
+                           'force'       'string' { 'on' 'off' 'auto' }   'auto';
                            'eventtypes'  {'cell' 'string'}  []    {}});
 if ischar(g)
     error(g);
+end
+if strcmpi(g.force, 'auto')
+    if nargin < 2
+        g.force = 'off';
+    else
+        g.force = 'on';
+    end
 end
 if ~iscell(g.eventtypes)
     g.eventtypes = { g.eventtypes };
