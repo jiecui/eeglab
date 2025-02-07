@@ -164,6 +164,7 @@ clear retinaDisplay tmpScreenSize tmpComputer tmpvers indp;
 if ~isdeployed
     % ICA binary file in eeglabroot/functions/supportfiles, path is set in binica
     % because it would be too slow to find the path every time icadefs is called
+    % ALL NEW BINARIES MUST BE PLACED IN THIS FOLDER
     ICABINARY = 'ica_linux'; 
     tmpComputer = computer;
     if strcmpi(tmpComputer(1:3), 'MAC')
