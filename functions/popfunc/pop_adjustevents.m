@@ -15,6 +15,8 @@
 %   'eventtype'   - [cell] Cell array of one or more strings giving the list 
 %                   of event type(s) to apply the latency shift to. Default
 %                   is all events.
+%   'force'       - ['on|'off'] force processing data containing 'boundary'
+%                   events. Default is 'off'.
 %
 % Outputs:
 %   EEG           - Input dataset with latencies shifted
@@ -89,11 +91,16 @@ if nargin < 2
         { 'style' 'text' 'string' 'Or add in samples'} ...
         { 'style' 'edit' 'string'  '' 'tag' 'edit_samples' 'callback' cback_sample}...
         { }...
+        { 'style' 'checkbox' 'string' 'Force adjustment' 'tag' 'force'}...
         };
         
-    uigeom = { [1 0.7 0.5] [1 0.7 0.5] [1 0.7 0.5]};
+    uigeom = { [1 0.7 0.5] [1 0.7 0.5] [1 0.7 0.5] 1 };
     result = inputgui('uilist', uilist, 'geometry', uigeom, 'title', 'Adjust event latencies - pop_adjustevents()');
     if isempty(result)
+        return;
+    end
+    if isempty(result{1}) || (isempty(result{2}) && isempty(result{3}))
+        disp('Not enough parameters selected')
         return;
     end
     
@@ -103,6 +110,9 @@ if nargin < 2
         options = { options{:} 'addms' str2num(result{2}) };
     elseif ~isempty(result{3})
         options = { options{:} 'addsamples' str2num(result{3}) };
+    end
+    if isequal(result{4}, 1)
+        options = { options{:} 'force' 'on' };
     end
     
     % Parse events
@@ -124,6 +134,7 @@ end
 
 g = finputcheck(options, { 'addms'       'real'  []    [];
                            'addsamples'  'real'  []    [];
+                           'force'       'string' { 'on' 'off' }   'off';
                            'eventtypes'  {'cell' 'string'}  []    {}});
 if ischar(g)
     error(g);
@@ -132,11 +143,29 @@ if ~iscell(g.eventtypes)
     g.eventtypes = { g.eventtypes };
 end
 
+% check for boundary events
+if strcmpi(g.force, 'off')
+    if EEG.trials > 1
+        error('Be careful when adjusting latencies for data epochs. Use the ''force'' option to do so.')
+    end
+    if ~isempty(EEG.event) && isfield(EEG.event, 'type')
+        if ischar(EEG.event(1).type)
+            if any(strmatch('boundary', {EEG.event.type}))
+                error('Be careful when adjusting latencies when boundary events are present. Use the ''force'' option to do so.')
+            end
+        else
+            eeglab_options;
+            if option_boundary99 && any( [ EEG.event.type ] == 99 )
+                error('Be careful when adjusting latencies when boundary events are present. Use the ''force'' option to do so.')
+            end
+        end
+    end
+end
+
 % Finding events indices
 indx2shift = [];
 if isempty(g.eventtypes)
     indx2shift = 1:length({EEG.event.type});
-    
 else
     for i=1:length(g.eventtypes)
         indxtmp = find(ismember({EEG.event.type}, g.eventtypes{i}));
