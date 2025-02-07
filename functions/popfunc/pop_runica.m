@@ -496,7 +496,9 @@ switch lower(g.icatype)
         if ~isequal(runicaCurrentLoc, runicaDesiredLoc)
             addpath(runicaDesiredLoc); % put back to the beginning of the path
         end
-        try if ismatlab, g.options = {  g.options{:}, 'interrupt', 'on' }; end; catch, end
+        try 
+            if ismatlab && nargin < 2, g.options = {  g.options{:}, 'interrupt', 'on' }; end
+        catch, end
         if tmprank == size(tmpdata,1) || pca_opt
             [EEG.icaweights,EEG.icasphere] = runica( tmpdata, 'lrate', 0.001,  g.options{:} );
         else 
