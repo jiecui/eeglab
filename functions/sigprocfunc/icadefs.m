@@ -162,7 +162,8 @@ clear retinaDisplay tmpScreenSize tmpComputer tmpvers indp;
 
 % INSERT location of ica executable (UNIX ONLY) for binica.m below
 if ~isdeployed
-    % ICA binary file in functions/supportfiles
+    % ICA binary file in eeglabroot/functions/supportfiles, path is set in binica
+    % because it would be too slow to find the path every time icadefs is called
     ICABINARY = 'ica_linux'; 
     tmpComputer = computer;
     if strcmpi(tmpComputer(1:3), 'MAC')
