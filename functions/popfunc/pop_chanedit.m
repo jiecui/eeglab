@@ -167,7 +167,8 @@ function [chansout, chaninfo, urchans, com] = pop_chanedit(chans, orichaninfo, v
 
 urchans  = [];
 com ='';
-if nargin < 1
+nargincopy = nargin;
+if nargincopy < 1
     help pop_chanedit;
     return;
 end
@@ -175,8 +176,13 @@ chansout = chans;
 chaninfo   = [];
 fig      = [];
 
-if nargin < 2
+if nargincopy < 2
     orichaninfo = [];
+end
+if isempty(varargin) && iscell(orichaninfo) % handles bug 843
+    varargin = orichaninfo(2:end);
+    orichaninfo = orichaninfo{1};
+    nargincopy = 3;
 end
 
 if isempty(chans) || all(~ishandle(chans))
@@ -241,14 +247,14 @@ if isempty(chans) || all(~ishandle(chans))
 
     % dealing with additional parameters
     % ----------------------------------
-    if nargin > 1 && ~ischar(orichaninfo), % nothing
-        if nargin > 2
+    if nargincopy > 1 && ~ischar(orichaninfo), % nothing
+        if nargincopy > 2
             if ~ischar(varargin{1})
                 urchans  = varargin{1};
                 varargin = varargin(2:end);
             end
         end
-    elseif nargin > 1 && ~isempty(orichaninfo) && ischar(orichaninfo)
+    elseif nargincopy > 1 && ~isempty(orichaninfo) && ischar(orichaninfo)
         varargin = { orichaninfo varargin{:} };
         if isequal(orichaninfo, chaninfo)
             chaninfo    = [];
@@ -281,7 +287,7 @@ if ~isempty(indx_tmp)
     flag_replurchan = varargin{indx_tmp+1};
 end
 
-if nargin < 3 && isstruct(chans) 
+if nargincopy < 3 && isstruct(chans) 
 
     totaluserdat = {};
     % lookup channel locations if necessary
