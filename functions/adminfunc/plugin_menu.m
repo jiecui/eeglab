@@ -50,6 +50,10 @@ if isempty(plugin)
     return;
 end
 
+if ~isfield(plugin, 'download')
+    fprintf(2, 'Unknown issue with plugin, aborting\n')
+end
+
 % sort plugins by download score
 [~,scoreOrder] = sort([ plugin.downloads ], 2, 'descend');
 plugin = plugin(scoreOrder);
