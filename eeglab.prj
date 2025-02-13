@@ -96,6 +96,12 @@ ${DYLD_LIBRARY_PATH}:MR/R2022b/runtime/maci64:MR/R2022b/sys/os/maci64:MR/R2022b/
       <file>${PROJECT_ROOT}/eeglab.m</file>
     </fileset.main>
     <fileset.resources>
+      <file>${PROJECT_ROOT}/plugins/dipfit/standard_BEM/standard_vol.mat</file>
+      <file>${PROJECT_ROOT}/plugins/dipfit/standard_BEM/standard_mri.mat</file>
+      <file>${PROJECT_ROOT}/plugins/dipfit/standard_BEM/elec/standard_1005.elc</file>
+      <file>${PROJECT_ROOT}/plugins/dipfit/standard_BESA/standard_BESA.mat</file>
+      <file>${PROJECT_ROOT}/plugins/dipfit/standard_BESA/avg152t1.mat</file>
+      <file>${PROJECT_ROOT}/plugins/dipfit/standard_BESA/standard-10-5-cap385.elp</file>
       <file>${PROJECT_ROOT}/functions/adminfunc</file>
       <file>${PROJECT_ROOT}/functions/guifunc</file>
       <file>${PROJECT_ROOT}/functions/miscfunc</file>

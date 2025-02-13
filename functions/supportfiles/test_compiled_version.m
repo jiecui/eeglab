@@ -71,7 +71,7 @@ try
     EEG = pop_headplot(EEG, 0, [1:3] , 'Components of dataset: Continuous EEG Data', [2  2], 'setup',{'eeglab_data.spl','meshfile','mheadnew.mat','transform',[-1.136 7.7523 11.4527 -0.027117 0.015531 -1.5455 0.91234 0.93161 0.80698] });
     close;
     EEG = pop_loadset( 'filename', 'eeglab_data_epochs_ica.set', 'filepath', 'sample_data');
-    EEG = pop_dipfit_settings( EEG, 'hdmfile',fullfile('plugins','dipfit','standard_BEM','standard_vol.mat'),'coordformat','MNI','mrifile',fullfile('plugins','dipfit','standard_BEM','standard_mri.mat'),'chanfile',fullfile('plugins','dipfit','standard_BEM','elec', 'standard_1005.elc'),'coord_transform',[0.83215 -15.6287 2.4114 0.081214 0.00093739 -1.5732 1.1742 1.0601 1.1485],'chansel',[1:31] );
+    EEG = pop_dipfit_settings( EEG, 'hdmfile', 'standard_vol.mat','coordformat','MNI','mrifile','standard_mri.mat','chanfile','standard_1005.elc','coord_transform',[0.83215 -15.6287 2.4114 0.081214 0.00093739 -1.5732 1.1742 1.0601 1.1485],'chansel',[1:31] );
     EEG = pop_leadfield(EEG, 'sourcemodel','LORETA-Talairach-BAs.mat','sourcemodel2mni',[],'downsample',1);
     pop_dipfit_loreta(EEG, 6);
     close
