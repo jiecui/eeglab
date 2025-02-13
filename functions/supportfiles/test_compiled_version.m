@@ -26,7 +26,12 @@ try
         TMP = pop_musemonitor( fullfile('sample_data', 'test_data', 'testmusemonitor.csv') );
         TMP = pop_biosig( fullfile('sample_data', 'test_data', 'test.edf') );
         TMP = pop_biosig( fullfile('sample_data', 'test_data', 'test.bdf') );
-        [TMP,TMP2] = pop_importbids( fullfile('sample_data', 'test_data', 'BIDS_test'), 'bidsevent', 'off' );
+        try
+            [TMP,TMP2] = pop_importbids( fullfile('sample_data', 'test_data', 'BIDS_test'), 'bidsevent', 'off' );
+        catch
+            warning(lasterr)
+            fprintf(2, 'pop_importbids error could be due to permission issues, try running EEGLAB as administrator\n')
+        end
         try
             TMP = pop_mffimport( fullfile(pwd, 'sample_data', 'test_data', 'testmff.mff'), 'code' );
         catch
