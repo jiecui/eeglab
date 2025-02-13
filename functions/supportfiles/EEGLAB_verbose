@@ -1,8 +1,12 @@
+#!/bin/bash
+cd "$(dirname "$0")" # this chdir to this script folder, usually not writable if not admin
+
 # Define the folder path
 echo 
-echo "***************************************"
+echo "***************************************************************************"
 echo "Please wait while EEGLAB is starting..."
-echo "***************************************"
+echo "See https://eeglab.org/others/Compiled_EEGLAB.html if you encounter issues"
+echo "***************************************************************************"
 echo
 
 folder_path="/Applications/MATLAB/MATLAB_Runtime/R2022b/"
