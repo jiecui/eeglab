@@ -334,6 +334,8 @@ if ~isdeployed
     myaddpath( eeglabpath, 'readeetraklocs.m', [ 'functions' filesep 'sigprocfunc'      ]);
     myaddpath( eeglabpath, 'supergui.m',       [ 'functions' filesep 'guifunc'          ]);
     myaddpath( eeglabpath, 'pop_study.m',      [ 'functions' filesep 'studyfunc'        ]);
+    myaddpath( eeglabpath, 'eeglab_data.set',  [ 'sample_data'      ]);
+    myaddpath( eeglabpath, 'mheadnew.mat',     [ 'functions' filesep 'supportfiles'     ]);
     myaddpath( eeglabpath, 'pop_loadbci.m',    [ 'functions' filesep 'popfunc'          ]);
     myaddpath( eeglabpath, 'statcond.m',       [ 'functions' filesep 'statistics'       ]);
     myaddpath( eeglabpath, 'timefreq.m',       [ 'functions' filesep 'timefreqfunc'     ]);

@@ -96,6 +96,11 @@ ${DYLD_LIBRARY_PATH}:MR/R2022b/runtime/maci64:MR/R2022b/sys/os/maci64:MR/R2022b/
       <file>${PROJECT_ROOT}/eeglab.m</file>
     </fileset.main>
     <fileset.resources>
+      <file>${PROJECT_ROOT}/sample_data/eeglab_chan32.locs</file>
+      <file>${PROJECT_ROOT}/sample_data/eeglab_data.fdt</file>
+      <file>${PROJECT_ROOT}/sample_data/eeglab_data.set</file>
+      <file>${PROJECT_ROOT}/sample_data/eeglab_data_epochs_ica.fdt</file>
+      <file>${PROJECT_ROOT}/sample_data/eeglab_data_epochs_ica.set</file>
       <file>${PROJECT_ROOT}/plugins/dipfit/standard_BEM/standard_vol.mat</file>
       <file>${PROJECT_ROOT}/plugins/dipfit/standard_BEM/standard_mri.mat</file>
       <file>${PROJECT_ROOT}/plugins/dipfit/standard_BEM/elec/standard_1005.elc</file>
