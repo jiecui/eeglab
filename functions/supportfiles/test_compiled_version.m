@@ -144,9 +144,14 @@ try
     
 catch lasterr
     % show error on command line
-    disp(lasterr.getReport())
-    warndlg2( [ 'Script failed with error below (see also command line). Fix and try again.' 10 10 ...
-        lasterr.message ], 'Compiled version');
+    if isdeployed
+        % lasterr not avaialble in compiled version
+        warndlg2( 'Script failed with error below (see also command line). Fix and try again.', 'Compiled version');
+    else
+        disp(lasterr.getReport())
+        warndlg2( [ 'Script failed with error below (see also command line). Fix and try again.' 10 10 ...
+            lasterr.message ], 'Compiled version');
+    end
     return
 end
 
