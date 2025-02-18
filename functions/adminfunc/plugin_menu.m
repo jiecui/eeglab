@@ -50,7 +50,7 @@ if isempty(plugin)
     return;
 end
 
-if ~isfield(plugin, 'download')
+if ~isfield(plugin, 'downloads')
     fprintf(2, 'Unknown issue with plugin, aborting\n')
 end
 
