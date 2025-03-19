@@ -46,6 +46,13 @@
 %   'exclude'     - [integer array] List of channels to exclude. Default: none.
 %   'keepref'     - ['on'|'off'] keep the reference channel. Default: 'off'.
 %   'refloc'      - [structure] Previous reference channel structure. Default: none.
+%   'refica'      - ['on'|'off'] re-reference the ICA decomposition. When the data is
+%                   re-referenced, what to do with the ICA decomposition is a matter of
+%                   debate. Ideally, recompute ICA. If the change is minor (another type
+%                   of average reference), then keep the same weights and set this option 
+%                   to 'off'. If you want to process the rereferenced scalp topographies,
+%                   set this option to 'on' (however the effect on ICA activities is unclear). 
+%                   Default: 'on'. See also https://eeglab.org/others/TIPS_and_FAQ.html#ica-activity-warning
 %
 % Outputs:
 %   EEGOUT      - re-referenced output dataset
@@ -245,6 +252,7 @@ optionscall = options;
 g = struct(optionscall{:});
 if ~isfield(g, 'exclude'),       g.exclude       = [];    end
 if ~isfield(g, 'keepref'),       g.keepref       = 'off'; end
+if ~isfield(g, 'refica'),        g.refica        = 'on'; end
 if ~isfield(g, 'refloc') ,       g.refloc        = [];    end
 if ~isfield(g, 'interpchan') ,   g.interpchan    = 'off'; end
 if ~isfield(g, 'addrefchannel'), g.addrefchannel = 0;     end
@@ -394,12 +402,15 @@ if isfield(EEG, 'ref')
 end
 
 EEG.nbchan = size(EEG.data,1);
+if ~isempty(EEG.icaweights)
+    EEG.icaact = [];
+end
 EEG = eeg_checkset(EEG);
 
 % include ICA or not
 % ------------------
-if ~isempty(EEG.icaweights)
-    
+if ~isempty(EEG.icaweights) && strcmpi(g.refica, 'on')
+    fprintf(2, 'Rerefering the ICA decomposition, read the warning message in pop_reref.m\n')
     if ~isempty(intersect(EEG.icachansind, g.exclude))
         disp('Warning: some channels used for ICA were excluded from referencing');
         disp('         the ICA decomposition has been removed');
@@ -451,6 +462,7 @@ if ~isempty(EEG.icaweights)
             EEG.icaweights = pinv(EEG.icawinv);
             EEG.icasphere  = eye(length(icachansind));
         end  
+        EEG.icaact = [];
     end
     EEG = eeg_checkset(EEG);
 end
