@@ -46,12 +46,15 @@
 %   'exclude'     - [integer array] List of channels to exclude. Default: none.
 %   'keepref'     - ['on'|'off'] keep the reference channel. Default: 'off'.
 %   'refloc'      - [structure] Previous reference channel structure. Default: none.
-%   'refica'      - ['on'|'off'] re-reference the ICA decomposition. When the data is
+%   'refica'      - ['on'|'off'|'backwardcomp'] re-reference the ICA decomposition. When the data is
 %                   re-referenced, what to do with the ICA decomposition is a matter of
 %                   debate. Ideally, recompute ICA. If the change is minor (another type
-%                   of average reference), then keep the same weights and set this option 
-%                   to 'off'. If you want to process the rereferenced scalp topographies,
-%                   set this option to 'on' (however the effect on ICA activities is unclear). 
+%                   of average reference), then keep the same weights and recompute ICA activities
+%                   (set this option to 'off'). To preserve backward compatibility with previous 
+%                   versions of EEGLAB, which has this option 'on' but does not recompute ICA 
+%                   activities (unless the data is reloaded) use 'backwardcomp'. If you want to process
+%                   the rereferenced scalp topographies, set this option to 'on' (however the effect
+%                   on ICA activities which are recomputed automatically is difficult to interpret). 
 %                   Default: 'on'. See also https://eeglab.org/others/TIPS_and_FAQ.html#ica-activity-warning
 %
 % Outputs:
@@ -403,7 +406,12 @@ end
 
 EEG.nbchan = size(EEG.data,1);
 if ~isempty(EEG.icaweights)
-    EEG.icaact = [];
+    fprintf(2, 'As of version 2025.1.0, automatically recalculating ICA component activities (this change is not backward compatible). See help.\n')
+    if ~strcmpi(g.refica, 'backwardcomp')
+        EEG.icaact = [];
+    else
+        g.refica = 'on';
+    end
 end
 EEG = eeg_checkset(EEG);
 
