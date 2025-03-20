@@ -124,6 +124,7 @@ g = finputcheck(varargin, { 'icaweight'   'real'    []          [];
                             'icasphere'   'real'    []          [];
                             'icachansind' 'integer'    []       [];
                             'interpchan'  {''}      []          [];
+                            'refica'      {''}      []          [];
                             'huber'       'float' []          NaN;
                             'method'     'string'  { 'standard','withref' }  'standard';
                             'refstate', {'string', 'integer'}, {{'common', 'averef'}, [1 size(data,1)]}, 'common';

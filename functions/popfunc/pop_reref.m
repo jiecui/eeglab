@@ -46,11 +46,11 @@
 %   'exclude'     - [integer array] List of channels to exclude. Default: none.
 %   'keepref'     - ['on'|'off'] keep the reference channel. Default: 'off'.
 %   'refloc'      - [structure] Previous reference channel structure. Default: none.
-%   'refica'      - ['on'|'off'|'backwardcomp'] re-reference the ICA decomposition. When the data is
-%                   re-referenced, what to do with the ICA decomposition is a matter of
-%                   debate. Ideally, recompute ICA. If the change is minor (another type
-%                   of average reference), then keep the same weights and recompute ICA activities
-%                   (set this option to 'off'). To preserve backward compatibility with previous 
+%   'refica'      - ['on'|'off'|'backwardcomp'|'remove'] re-reference the ICA decomposition. When the 
+%                   data is re-referenced, what to do with the ICA decomposition is a matter of
+%                   debate. Ideally, remove ICA ('remove' option) then recompute. If the change is minor
+%                   (another type of average reference), then keep the same weights and recompute ICA 
+%                   activities (set this option to 'off'). To preserve backward compatibility with previous 
 %                   versions of EEGLAB, which has this option 'on' but does not recompute ICA 
 %                   activities (unless the data is reloaded) use 'backwardcomp'. If you want to process
 %                   the rereferenced scalp topographies, set this option to 'on' (however the effect
@@ -405,9 +405,16 @@ if isfield(EEG, 'ref')
 end
 
 EEG.nbchan = size(EEG.data,1);
+if strcmpi(g.refica, 'remove')
+    disp('Removing ICA decomposition')
+    EEG.icaweights = [];
+    EEG.icasphere  = [];
+    EEG.icawinv    = [];
+    EEG.icaact     = [];
+end
 if ~isempty(EEG.icaweights)
-    fprintf(2, 'As of version 2025.1.0, automatically recalculating ICA component activities (this change is not backward compatible). See help.\n')
     if ~strcmpi(g.refica, 'backwardcomp')
+        fprintf(2, 'As of version 2025.1.0, automatically recalculating ICA component activities (this change is not backward compatible). See help.\n')
         EEG.icaact = [];
     else
         g.refica = 'on';
