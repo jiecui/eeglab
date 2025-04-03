@@ -420,7 +420,6 @@ if ~isempty(EEG.icaweights)
         g.refica = 'on';
     end
 end
-EEG = eeg_checkset(EEG);
 
 % include ICA or not
 % ------------------
@@ -479,8 +478,8 @@ if ~isempty(EEG.icaweights) && strcmpi(g.refica, 'on')
         end  
         EEG.icaact = [];
     end
-    EEG = eeg_checkset(EEG);
 end
+EEG = eeg_checkset(EEG);
 
 % generate the output command
 % ---------------------------
