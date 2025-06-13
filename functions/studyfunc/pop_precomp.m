@@ -229,7 +229,7 @@ if ~ischar(varargin{1}) %initial settings
     if os.erp_on == 1 
         options = { options{:} 'erp' 'on' };
         if ~isempty(os.erp_params)
-            options = { options{:} 'erpparams' { 'rmbase' str2num(os.erp_params) } };
+            options = { options{:} 'erpparams' eval([ '{' os.erp_params '}' ]) };
         end
         warnflag = checkFilePresent(STUDY, 'erp', comps, warnflag, os.recomp_on);
     end
@@ -403,7 +403,7 @@ else
         %     set(findobj('parent', hdl,'tag', 'erp_params'), 'string', tmpstr);
         case 'editerp'     
             str = get(findobj('parent', hdl,'tag', 'erp_params'), 'string');
-            tmpstr = cb_choices(str, 'ERP', 'std_erp', { 'rmbase' {'End of baseline (default is 0 ms)' []}});
+            tmpstr = cb_choices(str, 'ERP', 'std_erp', { 'rmbase' {'Baseline (min max)' []}});
             set(findobj('parent', hdl, 'tag', 'erp_params'), 'string', tmpstr);    
 
         case 'editspec'     
