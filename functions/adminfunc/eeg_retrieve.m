@@ -1,4 +1,4 @@
-% eeg_retrieve() - Retrieve an EEG dataset from the variable
+% EEG_RETRIEVE - Retrieve an EEG dataset from the variable
 %                  containing all datasets (standard: ALLEEG).
 %
 % Usage: >> EEG = eeg_retrieve( ALLEEG, index );
@@ -13,11 +13,11 @@
 %   CURRENTSET - workspace variable index of the current dataset
 %
 % Note: The function performs >> EEG = ALLEEG(index);
-%       It also runs eeg_checkset() on it.
+%       It also runs EEG_CHECKSET on it.
 %
 % Author: Arnaud Delorme, CNL / Salk Institute, 2001
 %
-% See also: eeg_store(), eeglab()
+% See also: EEG_STORE, EEGLAB
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
@@ -46,7 +46,7 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function [EEG, ALLEEG, CURRENTSET] = eeg_retrieve( ALLEEG, CURRENTSET);
+function [EEG, ALLEEG, CURRENTSET] = eeg_retrieve( ALLEEG, CURRENTSET)
 
 if nargin < 2
 	help eeg_retrieve;
@@ -64,16 +64,16 @@ end;
     end
 
     if length(CURRENTSET) > 1 && option_storedisk
-        [ EEG tmpcom ] = eeg_checkset(ALLEEG(CURRENTSET)); % do not load data if several datasets
+        [ EEG, ~ ] = eeg_checkset(ALLEEG(CURRENTSET)); % do not load data if several datasets
         if length(CURRENTSET) ~= length(ALLEEG)
-            [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, CURRENTSET);
+            [ALLEEG, EEG, CURRENTSET] = eeg_store(ALLEEG, EEG, CURRENTSET);
         else
             ALLEEG = EEG;
         end
     else
         if CURRENTSET ~= 0
-            [ EEG tmpcom ] = eeg_checkset(ALLEEG(CURRENTSET), 'loaddata');
-            [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, CURRENTSET);
+            [ EEG, ~ ] = eeg_checkset(ALLEEG(CURRENTSET), 'loaddata');
+            [ALLEEG, EEG, CURRENTSET] = eeg_store(ALLEEG, EEG, CURRENTSET);
         else
             EEG = eeg_emptyset; % empty dataset
             return;

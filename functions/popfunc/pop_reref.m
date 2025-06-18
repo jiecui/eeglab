@@ -1,5 +1,5 @@
-% pop_reref() - Convert an EEG dataset to average reference or to a
-%               new common reference channel (or channels). Calls reref().
+% POP_REREF - Convert an EEG dataset to average reference or to a
+%               new common reference channel (or channels). Calls REREF.
 % Usage:
 %       >> EEGOUT = pop_reref( EEG ); % pop up interactive window
 %       >> EEGOUT = pop_reref( EEG, ref, 'key', 'val' ...);
@@ -46,16 +46,26 @@
 %   'exclude'     - [integer array] List of channels to exclude. Default: none.
 %   'keepref'     - ['on'|'off'] keep the reference channel. Default: 'off'.
 %   'refloc'      - [structure] Previous reference channel structure. Default: none.
+%   'refica'      - ['on'|'off'|'backwardcomp'|'remove'] re-reference the ICA decomposition. When the 
+%                   data is re-referenced, what to do with the ICA decomposition is a matter of
+%                   debate. Ideally, remove ICA ('remove' option) then recompute. If the change is minor
+%                   (another type of average reference), then keep the same weights and recompute ICA 
+%                   activities (set this option to 'off'). To preserve backward compatibility with previous 
+%                   versions of EEGLAB, which has this option 'on' but does not recompute ICA 
+%                   activities (unless the data is reloaded) use 'backwardcomp'. If you want to process
+%                   the rereferenced scalp topographies, set this option to 'on' (however the effect
+%                   on ICA activities which are recomputed automatically is difficult to interpret). 
+%                   Default: 'on'. See also https://eeglab.org/others/TIPS_and_FAQ.html#ica-activity-warning
 %
 % Outputs:
 %   EEGOUT      - re-referenced output dataset
 %
 % Notes:
-%                 For other options, call reref() directly. See >> help reref
+%                 For other options, call REREF directly. See >> help reref
 %
 % Author: Arnaud Delorme, CNL / Salk Institute, 12 Nov 2002
 %
-% See also: reref(), eeglab()
+% See also: REREF, EEGLAB
 
 % Copyright (C) 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
@@ -90,7 +100,7 @@ com = '';
 if nargin < 1
    help pop_reref;
    return;
-end;   
+end
 if isempty(EEG(1).data)
     error('Pop_reref: cannot process empty data');
 end
@@ -105,7 +115,7 @@ if nargin < 2
         includeref = 1;
     end
     
-    geometry = { [1] [1] [1.8 1 0.3] [1] [1] [1] [1.8 1 0.3] [1.8 1 0.3] };
+    geometry = { [1] [1] [1.8 1 0.3] [1.8 1 0.3] [1] [1] [1] [1.8 1 0.3] [1.8 1 0.3] };
     cb_setref = [ 'set(findobj(''parent'', gcbf, ''tag'', ''refbr'')    , ''enable'', ''on'');' ...
                   'set(findobj(''parent'', gcbf, ''tag'', ''reref'')    , ''enable'', ''on'');' ...
                   'set(findobj(''parent'', gcbf, ''tag'', ''keepref'')  , ''enable'', ''on'');' ];
@@ -113,10 +123,17 @@ if nargin < 2
                   'set(findobj(''parent'', gcbf, ''tag'', ''reref'')    , ''enable'', ''off'');' ...
                   'set(findobj(''parent'', gcbf, ''tag'', ''keepref'')  , ''enable'', ''off'', ''value'', 0);' ];
     cb_averef = [ 'set(findobj(''parent'', gcbf, ''tag'', ''rerefstr'') , ''value'', ~get(gcbo, ''value''));' ...
+                  'set(findobj(''parent'', gcbf, ''tag'', ''huberef'')  , ''value'', 0);' ...
+                  'if get(gcbo, ''value''),' cb_setave ...
+                  'else,'                    cb_setref ...
+                  'end;' ];
+    cb_huberref = [ 'set(findobj(''parent'', gcbf, ''tag'', ''ave'')    , ''value'', ~get(gcbo, ''value''));' ...
+                  'set(findobj(''parent'', gcbf, ''tag'', ''rerefstr'') , ''value'', 0);' ...
                   'if get(gcbo, ''value''),' cb_setave ...
                   'else,'                    cb_setref ...
                   'end;' ];
     cb_ref    = [ 'set(findobj(''parent'', gcbf, ''tag'', ''ave'')      , ''value'', ~get(gcbo, ''value''));' ...
+                  'set(findobj(''parent'', gcbf, ''tag'', ''huberef'')  , ''value'', 0);' ...
                   'if get(gcbo, ''value''),' cb_setref ...
                   'else,'                    cb_setave ...
                   'end;' ];
@@ -159,6 +176,9 @@ if nargin < 2
                ...
                { 'style' 'checkbox' 'tag' 'ave'   'value' 1 'string' 'Compute average reference' 'callback' cb_averef } ...
                ...
+               { 'style' 'checkbox' 'tag' 'huberef'  'value' 0 'string' 'Huber average ref. with threshold' 'callback' cb_huberref } ...
+               { 'style' 'edit'     'tag' 'huberval' 'string' '25' 'callback' cb_huberref } { 'style' 'text' 'string' 'uV' 'tag' 'scale'} ...
+               ...
                { 'style' 'checkbox' 'tag' 'rerefstr' 'value' 0 'string' 'Re-reference data to channel(s):' 'callback'  cb_ref } ...
                { 'style' 'edit' 'tag' 'reref' 'string' '' 'enable' 'off' } ...
                { 'style' 'pushbutton' 'string' '...' 'callback' cb_chansel1 'enable' 'off' 'tag' 'refbr' } ...
@@ -194,6 +214,10 @@ if nargin < 2
              options = { options{:} 'refloc' EEG(1).chaninfo.nodatchans(chanind) }; 
          catch, disp('Error with old reference: ignoring it');
          end
+    end
+    if restag.huberef
+        options = { options{:} 'huber' str2double(restag.huberval) };
+        ref = [];
     end
     if ~isempty(restag.exclude), options = { options{:} 'exclude' eeg_chaninds(EEG, restag.exclude) }; end
     if restag.keepref,           options = { options{:} 'keepref' 'on' }; end
@@ -231,6 +255,7 @@ optionscall = options;
 g = struct(optionscall{:});
 if ~isfield(g, 'exclude'),       g.exclude       = [];    end
 if ~isfield(g, 'keepref'),       g.keepref       = 'off'; end
+if ~isfield(g, 'refica'),        g.refica        = 'on'; end
 if ~isfield(g, 'refloc') ,       g.refloc        = [];    end
 if ~isfield(g, 'interpchan') ,   g.interpchan    = 'off'; end
 if ~isfield(g, 'addrefchannel'), g.addrefchannel = 0;     end
@@ -239,10 +264,15 @@ if ~isfield(g, 'enforcetype'),   g.enforcetype   = 0;     end
 interpflag = 0;
 if ~isequal('off', g.interpchan )
     
-    % Case no channel provided, infering them from urchanlocs field
+    % Case no channel provided, inferring them from urchanlocs field
     if isempty(g.interpchan) 
-        if isfield(EEG.chaninfo, 'removedchans')
+        if isfield(EEG.chaninfo, 'removedchans') && isfield(EEG.chaninfo.removedchans, 'theta')
             chanlocs2interp = EEG.chaninfo.removedchans;
+            emptyChans = cellfun(@isempty, { chanlocs2interp.theta });
+            chanlocs2interp(emptyChans) = [];
+            if ~isempty(chanlocs2interp)
+                interpflag = 1;
+            end
         else
             try
                 urchantype  = {EEG.urchanlocs.type};
@@ -279,7 +309,7 @@ if ~isequal('off', g.interpchan )
             else
                chan2interpindx = find(cell2mat(cellfun(@(x) ismember(x, chan2interp), {EEG.urchanlocs.labels}, 'UniformOutput', 0)));  
 
-               % Checking validity of channels selected for interpolation by assessing X ccordinate
+               % Checking validity of channels selected for interpolation by assessing X coordinate
                for ichan = 1:length(chan2interpindx)
                    validchan(ichan) = ~isempty(EEG.urchanlocs(chan2interpindx(ichan)).X);
                end
@@ -318,10 +348,10 @@ end
 % -----------------------------
 if ~isempty(EEG.chanlocs)
     optionscall = { optionscall{:} 'elocs' EEG.chanlocs }; 
-end;    
+end
 
 fprintf('Re-referencing data\n');
-[EEG.data EEG.chanlocs refchan ] = reref(EEG.data, ref, optionscall{:});
+[EEG.data, EEG.chanlocs, refchan ] = reref(EEG.data, ref, optionscall{:});
 
 % If interpolation was done... then remove channels
 if interpflag
@@ -333,32 +363,32 @@ nchans = EEG.nbchan; % retrieve number of channels for ICA bussines
 % deal with reference
 % -------------------
 if ~isempty(refchan)
-    if ~isfield(EEG.chaninfo, 'nodatchans')
-        EEG.chaninfo.nodatchans = refchan;
-    elseif isempty(EEG.chaninfo.nodatchans)
-        EEG.chaninfo.nodatchans = refchan;
+    if ~isfield(EEG.chaninfo, 'removedchans')
+        EEG.chaninfo.removedchans = refchan;
+    elseif isempty(EEG.chaninfo.removedchans)
+        EEG.chaninfo.removedchans = refchan;
     else
         allf = fieldnames(refchan);
-        n    = length(EEG.chaninfo.nodatchans);
+        n    = length(EEG.chaninfo.removedchans);
         for iRef = 1:length(refchan)
             for ind = 1:length(allf)
-                EEG.chaninfo.nodatchans = setfield(EEG.chaninfo.nodatchans, { n+iRef }, ...
+                EEG.chaninfo.removedchans = setfield(EEG.chaninfo.removedchans, { n+iRef }, ...
                     allf{ind}, getfield(refchan(iRef), allf{ind}));
             end
         end
     end
 end
 if ~isempty(g.refloc) 
-    if isfield(EEG.chaninfo, 'nodatchans') && ~isempty(EEG.chaninfo.nodatchans)
+    if isfield(EEG.chaninfo, 'removedchans') && ~isempty(EEG.chaninfo.removedchans)
         allinds = [];
         tmpchaninfo = EEG.chaninfo;
         for iElec = 1:length(g.refloc)
-            if isempty(tmpchaninfo) || isempty(tmpchaninfo.nodatchans)
+            if isempty(tmpchaninfo) || isempty(tmpchaninfo.removedchans)
                 error('Missing reference channel information. Edit channels and add reference first.');
             end
-            allinds = [allinds strmatch( g.refloc(iElec).labels, { tmpchaninfo.nodatchans.labels }) ];
+            allinds = [allinds strmatch( g.refloc(iElec).labels, { tmpchaninfo.removedchans.labels }) ];
         end
-        EEG.chaninfo.nodatchans(allinds) = [];
+        EEG.chaninfo.removedchans(allinds) = [];
     else
         error('Missing reference channel information. Edit channels and add reference first.');
     end
@@ -368,27 +398,41 @@ end
 % --------------------
 if isfield(EEG, 'ref')
     if strcmpi(EEG.ref, 'common') && isempty(ref)
-        EEG.ref = 'averef';
-    elseif strcmpi(EEG.ref, 'averef') && ~isempty(ref)
+        EEG.ref = 'average';
+    elseif strcmpi(EEG.ref, 'average') && ~isempty(ref)
         EEG.ref = 'common';
     end
 end
 
 EEG.nbchan = size(EEG.data,1);
-EEG = eeg_checkset(EEG);
+if strcmpi(g.refica, 'remove')
+    disp('Removing ICA decomposition')
+    EEG.icaweights = [];
+    EEG.icasphere  = [];
+    EEG.icawinv    = [];
+    EEG.icaact     = [];
+end
+if ~isempty(EEG.icaweights)
+    if ~strcmpi(g.refica, 'backwardcomp')
+        fprintf(2, 'As of version 2025.1.0, automatically recalculating ICA component activities (this change is not backward compatible). See help.\n')
+        EEG.icaact = [];
+    else
+        g.refica = 'on';
+    end
+end
 
 % include ICA or not
 % ------------------
-if ~isempty(EEG.icaweights)
-    
+if ~isempty(EEG.icaweights) && strcmpi(g.refica, 'on')
+    fprintf(2, 'Rerefering the ICA decomposition, read the warning message in pop_reref.m\n')
     if ~isempty(intersect(EEG.icachansind, g.exclude))
         disp('Warning: some channels used for ICA were excluded from referencing');
         disp('         the ICA decomposition has been removed');
         EEG.icaweights = [];
         EEG.icasphere  = [];
     elseif length(EEG.icachansind) ~= nchans - length(g.exclude)
-        disp('Error: some channels not used for ICA decomposition are used for rereferencing');
-        disp('       the ICA decomposition has been removed');
+        disp('Warning: some channels not used for ICA decomposition are used for rereferencing');
+        disp('         the ICA decomposition has been removed');
         EEG.icaweights = [];
         EEG.icasphere  = [];
     else
@@ -400,7 +444,7 @@ if ~isempty(EEG.icaweights)
         newICAchaninds = zeros(orinbchan, size(EEG.icawinv,2));
         newICAchaninds(EEG.icachansind,:) = EEG.icawinv;
         
-        [newICAchaninds newchanlocs] = reref(newICAchaninds, ref, optionscall{:});
+        [newICAchaninds, newchanlocs] = reref(newICAchaninds, ref, optionscall{:});
         
         % convert channel indices in icachanlocs (uses channel labels)
         % ------------------------------------------------------------
@@ -410,9 +454,12 @@ if ~isempty(EEG.icaweights)
             oldLabel    = orichanlocs(icachansind(i)).labels;
             newLabelPos = strmatch(oldLabel, { newchanlocs.labels }, 'exact');
             
+            if length(newLabelPos) > 1
+                warning('More than one match for specified reference channel; First one selected. This may cause erratic behavior. If the 2 channels are identical, delete one of them.');
+            end
             if ~isempty( newLabelPos )
-                icachansind(i) = newLabelPos;
-                rminds(find(icachansind(i) == rminds)) = [];
+                icachansind(i) = newLabelPos(1);
+                rminds(icachansind(i) == rminds) = [];
             else
                 icachansind(i) = [];
             end
@@ -428,11 +475,13 @@ if ~isempty(EEG.icaweights)
         else
             EEG.icaweights = pinv(EEG.icawinv);
             EEG.icasphere  = eye(length(icachansind));
-        end;    
+        end  
+        EEG.icaact = [];
     end
-    EEG = eeg_checkset(EEG);
 end
+EEG = eeg_checkset(EEG);
 
 % generate the output command
 % ---------------------------
 com = sprintf('EEG = pop_reref( EEG, %s);', vararg2str({ref, options{:}}));
+

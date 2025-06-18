@@ -1,10 +1,10 @@
-% pop_stdwarn() - check memory options and issue warning for studies.
+% POP_STDWARN - check memory options and issue warning for studies.
 %
 % Usage: >> pop_stdwarn;
 %
 % Author: Arnaud Delorme, CERCO, 2007
 %
-% See also: eeg_options()
+% See also: EEG_OPTIONS
 
 % Copyright (C) Arnaud Delorme, CERCO, 2007, arno@salk.edu
 %
@@ -40,11 +40,11 @@ if ~option_storedisk
     vartext = strvcat('Your memory options currently allow to store all datasets in memory (RAM)!', ' ', ...
                    'If your study contains a large number of datasets, you should change the memory', ...
                    'settings to allow EEGLAB to only read the dataset header (cancel next action and', ...
-                   'use menu item "File > Memory" - first checkbox to allow at most one dataset at a', ...
+                   'use menu item "File > Preferences" - first checkbox to allow at most one dataset at a', ...
                    'time in memory). Otherwise your computer might run out of memory.', ' ', ...
                    'NOTE that this is a REQUIRED step to load the tutorial study since it does not', ...
                    'contain the EEG data.', ' ');
     
-    res = questdlg2(vartext, 'Study warning', 'Cancel', 'Ok', 'Ok');
+    res = questdlg2(vartext, 'Study warning', 'Cancel', 'OK', 'OK');
     if strcmpi(res, 'Cancel'),return; end
 end

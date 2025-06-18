@@ -1,5 +1,5 @@
-% vararg2str() - transform arguments into string for evaluation 
-%                using the eval() command
+% VARARG2STR - transform arguments into string for evaluation 
+%                using the EVAL command
 %
 % Usage:
 %   >> strout = vararg2str( allargs );
@@ -47,7 +47,7 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function strout = vararg2str(allargs, inputnam, inputnum, int2str );
+function strout = vararg2str(allargs, inputnam, inputnum, int2str )
 
 if nargin < 1
 	help vararg2str;
@@ -108,7 +108,9 @@ for index = 1:length(allargs)
 			strout = [ strout ',{' tmpres '}' ];
 		elseif isstruct(tmpvar)
 			strout = [ strout ',' struct2str( tmpvar ) ];		
-		else
+        elseif isa(tmpvar, 'function_handle')
+            strout = [ strout ',' char( tmpvar ) ];
+        else
 			error('Unrecognized input');
 		end
 	end
@@ -163,7 +165,17 @@ function str = struct2str( structure )
 	for index = 1:length( allfields )
 		strtmp = '';
 		eval( [ 'allcontent = { structure.' allfields{index} ' };' ] ); % getfield generates a bug
-		str = [ str, '''' allfields{index} ''',{' vararg2str( allcontent ) '},' ];
+        if length(allcontent) == 1 && isnumeric(allcontent{1}) 
+            if length(allcontent{1}) == 1
+    		    str = [ str, '''' allfields{index} ''',' vararg2str( allcontent{1} ) ',' ];
+            elseif isempty(allcontent{1})
+    		    str = [ str, '''' allfields{index} ''',[],' ];
+            else
+    		    str = [ str, '''' allfields{index} ''',' vararg2str( allcontent{1} ) ',' ];
+            end
+        else
+    		str = [ str, '''' allfields{index} ''',{' vararg2str( allcontent ) '},' ];
+        end
 	end
 	str = [ 'struct(' str(1:end-1) ')' ];
 return;

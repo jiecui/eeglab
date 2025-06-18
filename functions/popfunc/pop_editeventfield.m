@@ -1,4 +1,4 @@
-% pop_editeventfield() - Add/remove/rename/modify a field in the event structure 
+% POP_EDITEVENTFIELD - Add/remove/rename/modify a field in the event structure 
 %              of an EEG dataset. Can also be used to append new events to the end of the 
 %              event structure or to delete all current events. If the dataset is 
 %              the only input, a window pops up to ask for relevant parameter values.
@@ -9,7 +9,7 @@
 %   EEG      - input dataset
 %
 % Optional inputs:
-%  'FIELDNAME_X' - [ 'filename'|vector ]. Name of a current or new 
+%  'FIELDNAMEX' - [ 'filename'|vector ]. Name of a current or new 
 %               user-defined event field. The ascii file, vector variable, 
 %               or explicit numeric vector should contain values for this field 
 %               for all events specified in 'indices' (below) or in new events
@@ -25,7 +25,8 @@
 %  'type'     - [ 'filename'|vector ] example of field name (see description above).
 %  'duration' - [ 'filename'|vector ] example of field name (see description above). 
 %               Units must be in seconds (s).
-%  'FIELDNAME_X_info' - new comment string for field FIELDNAME_X.
+%  'FIELDNAMEXinfo' - new comment string for field FIELDNAMEX.
+%  'FIELDNAMEXtype' - [Char|Num] new data type for field FIELDNAMEX.
 %  'latency_info'     - description string for the latency field.
 %  'type_info'        - description string for the type field.
 %  'duration_info'    - description string for the duration field.
@@ -75,7 +76,7 @@
 %
 % Author: Arnaud Delorme & Scott Makeig, CNL / Salk Institute, 9 Feb 2002-
 %
-% See also: pop_importevent(), eeg_eventformat(), pop_selectevent()
+% See also: POP_IMPORTEVENT, EEG_EVENTFORMAT, POP_SELECTEVENT
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, 9 Feb 2002, arno@salk.edu
 %
@@ -107,7 +108,7 @@
 %02/13/2001 fix bug if EEG.event is empty -ad
 %03/12/2001 add timeunit option -ad
 %03/18/2001 debug rename option -ad & sm
-%03/18/2001 correct allignment problem -ad & ja
+%03/18/2001 correct alignment problem -ad & ja
 
 function [EEG, com] = pop_editeventfield(EEG, varargin);
 
@@ -142,20 +143,33 @@ if nargin<2
                     'end;' ...
                     'clear filename filepath tagtest;' ];
     uilist = { ...
-        { 'Style', 'text', 'string', 'Edit fields:', 'fontweight', 'bold'  }, ...
-        { 'Style', 'text', 'string', 'Edit description', 'fontweight', 'bold'  }, ...
-        { 'Style', 'text', 'string', sprintf('New values (file or array containing %d values)', length(EEG.event)), 'fontweight', 'bold'  }, ...
-        { 'Style', 'text', 'string', 'Delete field', 'fontweight', 'bold'  } ...
+        { 'Style', 'text', 'string', 'Event fields', 'fontweight', 'bold'  }, ...
+        { 'Style', 'text', 'string', 'Description', 'fontweight', 'bold'  }, ...
+        { 'Style', 'text', 'string', sprintf('File/array with %d values', length(EEG.event)), 'fontweight', 'bold'  }, {}, ...
+        { 'Style', 'text', 'string', 'Type', 'fontweight', 'bold'  }, ...
+        { 'Style', 'text', 'string', 'Delete', 'fontweight', 'bold'  } ...
              };
-    geometry = { [1.05 1.05 2 0.8] };
+    geometry = { [1 1 1.2 0.05 0.3 0.42] };
 
     listboxtext = { 'No field selected' };
     txt_warn = 'warndlg2(strvcat(''Warning: deleting/renaming this field might cause EEGLAB'', ''to be unstable. Some functionalities will also be lost.''));';
     cb_warn2 = [ 'strtmp = get(gcbo, ''string''); if ~isempty(strmatch(strtmp(get(gcbo, ''value'')), { ''latency'' ''type''}, ''exact'')),' txt_warn 'end;' ];
+    % cb_type  = [ 'if isequal(get(gcbo, ''string''), ''Num''),' ...
+    %              '   set(gcbo, ''string'', ''Char'');' ...
+    %              'else' ...
+    %              '   set(gcbo, ''string'', ''Num'');' ...
+    %              'end;' ...
+    %              'if isequal(get(gcbo, ''userdata''), get(gcbo, ''string'')),' ...
+    %              '   set(gcbo, ''fontweight'', ''normal'');' ...
+    %              'else' ...
+    %              '   set(gcbo, ''fontweight'', ''bold'');' ...
+    %              'end;' ];
+    lineOfText = [1 1 1 0.25 0.6 0.32];
+    alltypes = [];
     for index = 1:length(allfields) 
-        geometry = { geometry{:} [1 1 1 0.7 0.2 0.32 0.2] };
+        geometry = { geometry{:} lineOfText };
         description = '';
-        try, 
+        try
             description = fastif(isempty(EEG.eventdescription{index}), '', EEG.eventdescription{index});
             description = description(1,:);
             tmplines = find(description == 10);
@@ -172,6 +186,11 @@ if nargin<2
         else
             tmpfield = allfields{index};
         end
+        if isnumeric(EEG.event(1).(allfields{index}))
+            alltypes(index) = 2;
+        else
+            alltypes(index) = 1;
+        end
         uilist   = { uilist{:}, ...
                      { 'Style', 'text', 'string', tmpfield }, ...
                      { 'Style', 'pushbutton', 'string', description, 'callback', ...
@@ -181,8 +200,9 @@ if nargin<2
                          'set(gcbo, ''string'', tmpuserdata{' int2str(index) '});' ...
                          'set(gcf, ''userdata'', tmpuserdata); clear tmpuserdata;' ] }, ...
                      { 'Style', 'edit', 'string', '', 'horizontalalignment', 'left', 'tag',  allfields{index} }, ...
-                     { 'Style', 'pushbutton', 'string', 'Browse', 'callback', ['tagtest = ''' allfields{index} ''';' commandload ] }, ...
-                     { }, { 'Style', 'checkbox', 'string', '    ', cb_warn{:} }, { } };
+                     { 'Style', 'pushbutton', 'string', '...', 'callback', ['tagtest = ''' allfields{index} ''';' commandload ] }, ...
+                     { 'Style', 'popupmenu', 'string', 'Char|Num', 'tag',  allfields{index} 'value' alltypes(index) }, ...
+                     { 'Style', 'checkbox', 'string', '', cb_warn{:} } };
         listboxtext = { listboxtext{:}  allfields{index} }; 
     end
     index = length(allfields) + 1;
@@ -195,21 +215,22 @@ if nargin<2
                      'set(gcbo, ''string'', tmpuserdata{' int2str(index) '});' ...
                      'set(gcf, ''userdata'', tmpuserdata); clear tmpuserdata;' ] }, ...
                  { 'Style', 'edit', 'string', '', 'horizontalalignment', 'left', 'tag',  'newfield' }, ...
-                 { 'Style', 'pushbutton', 'string', 'Browse', 'callback', ['tagtest = ''newfield'';' commandload ] }, ...
-                 { 'Style', 'text', 'string', '-> add field'} ...
+                 { 'Style', 'pushbutton', 'string', '...', 'callback', ['tagtest = ''newfield'';' commandload ] }, ...
+                     { 'Style', 'popupmenu', 'string', 'Char|Num', 'tag',  'newfield' }, ...
+                 { } ...
                  { } ...
                  { 'Style', 'text', 'string', 'Rename field', 'fontweight', 'bold' }, ...
                  { 'Style', 'popupmenu', 'string', listboxtext 'callback' cb_warn2 }, ...
                  { 'Style', 'text', 'string', 'as', 'fontweight', 'bold' }, ...
                  { 'Style', 'edit', 'string', '' } ...
-                 fastif(isunix,{ 'Style', 'text', 'string', '(Click on field name to select it!)' },{ })};
-    geometry = { geometry{:} [1 1 1 0.7 0.72] [1] [1 1.2 0.6 1 2] };
+                 { } };
+    geometry = { geometry{:} lineOfText 1 [0.8 1.4 0.35 1.2 1] };
 
     descriptions = EEG.eventdescription;
     if isempty(descriptions), descriptions = { '' '' }; end
-    [results userdat ]= inputgui( geometry, uilist, 'pophelp(''pop_editeventfield'');', ...
+    [ results, userdat] = inputgui( geometry, uilist, 'pophelp(''pop_editeventfield'');', ...
                                   'Edit event field(s) -- pop_editeventfield()', { descriptions{:} '' } );
-    if length(results) == 0, return; end
+    if isempty(results), return; end
 
     % decode top inputs
     % -----------------
@@ -218,18 +239,26 @@ if nargin<2
     % dealing with existing fields
     %-----------------------------
     for index = 1:length(allfields) 
-        if results{index*2} == 1, args = { args{:}, allfields{index}, [] };
+        if results{index*3} == 1
+            args = { args{:}, allfields{index}, [] };
         else 
-            if ~isempty( results{index*2-1} )
-                if exist(results{index*2-1}) == 2,  args = { args{:}, allfields{index}, [ results{index*2-1} ] }; % file
-                else                                args = { args{:}, allfields{index}, results{index*2-1} }; end
+            if ~isempty( results{index*3-2} )
+                if exist(results{index*3-2}) == 2 
+                    args = { args{:}, allfields{index}, [ results{index*3-2} ] }; % file
+                else                               
+                    args = { args{:}, allfields{index}, results{index*3-2} }; % array
+                end
             end
-            try, 
+            if ~isequal(alltypes(index), results{index*3-1})
+                args = { args{:}, [ allfields{index} 'type' ], fastif(results{index*3-1} == 1, 'Char', 'Num') };
+            end
+            try
                 if ~strcmp( userdat{index}, EEG.eventdescription{index})
                     args = { args{:}, [ allfields{index} 'info' ], userdat{index} }; 
                 end
-            catch, end
-        end;     
+            catch
+            end
+        end  
     end
     
     % dealing with the new field
@@ -247,13 +276,16 @@ else % no interactive inputs
     % scan args to modify array/file format
     % array are transformed into string 
     % files are transformed into string of string
-    % (this is usefull to build the string command for the function)
+    % (this is useful to build the string command for the function)
     % --------------------------------------------------------------
     for index=1:2:length(args)
-        if iscell(args{index+1}), args{index+1} = { args{index+1} }; end; % double nested 
-        if ischar(args{index+1})   args{index+1} = args{index+1}; % string 
+        if iscell(args{index+1})
+            args{index+1} = {args{index+1}};
         end
-    end;                
+        if ischar(args{index+1})
+            args{index+1} = args{index+1};
+        end
+    end                
 end
 
 % create structure
@@ -279,7 +311,7 @@ for curfield = tmpfields'
     else                    allfields = {}; end
     switch lower(curfield{1})
        case { 'append' 'delold', 'fields', 'skipline', 'indices', 'timeunit', 'delim' }, ; % do nothing now
-       case 'rename',
+       case 'rename'
             if isempty( findstr('->',g.rename) ), 
                 disp('warning pop_editeventfield() bad syntax for ''rename'', ignoring input'); 
             else
@@ -297,20 +329,37 @@ for curfield = tmpfields'
                     disp('pop_editeventfield() warning: field name not renamed in urevent structure');
                 end
             end
-       otherwise, % user defined field command
+        otherwise % user defined field command
                   % --------------------------
             infofield = findstr(curfield{1}, 'info');
-            if ~isempty(infofield) && infofield == length( curfield{1} )-3
+            typefield = findstr(curfield{1}, 'type');
+            if ~isempty(infofield) && infofield(end) == length( curfield{1} )-3 && ~isequal(curfield{1}, 'info')
                 % description of a field
                 % ----------------------     
-                fieldname = curfield{1}(1:infofield-1);
+                fieldname = curfield{1}(1:infofield(end)-1);
                 indexmatch = strmatch( fieldname, allfields);
                 if isempty( indexmatch )
                     disp(['pop_editeventfield() warning: Field ' fieldname ' not found to add description, ignoring']);
                 else
                     EEG.eventdescription{indexmatch} = getfield(g, curfield{1});
                 end
-            else              
+            elseif ~isempty(typefield) && typefield(end) == length( curfield{1} )-3 && ~isequal(curfield{1}, 'type')
+                fieldname = curfield{1}(1:typefield(end)-1);
+                if isequal(fieldname, 'latency') || isequal(fieldname, 'epoch') || isequal(fieldname, 'urevent')
+                    error('This field type cannot be changed');
+                end
+                if strcmpi(getfield(g, curfield{1}), 'char')
+                    fprintf('Updating the type of field "%s" to "Char"\n', fieldname);
+                    for iEvent = 1:length(EEG.event)
+                        EEG.event(iEvent).(fieldname) = num2str(EEG.event(iEvent).(fieldname));
+                    end
+                else
+                    fprintf('Updating the type of field "%s" to "Numerical"\n', fieldname);
+                    for iEvent = 1:length(EEG.event)
+                        EEG.event(iEvent).(fieldname) = str2double(EEG.event(iEvent).(fieldname));
+                    end
+                end
+            else
                 % not an field for description
                 % ----------------------------      
 	            if isempty( getfield(g, curfield{1}) ) % delete
@@ -323,10 +372,11 @@ for curfield = tmpfields'
                         if isfield(EEG, 'urevent')
                             fprintf('pop_editeventfield() warning: field ''%s'' not deleted from urevent structure\n', curfield{1}  );
                         end
-						try,
+						try
 							EEG.eventdescription(indexmatch) = [];
-						catch, end
-	                 end;    
+                        catch
+                        end
+                     end 
 	            else % interpret
 		            switch g.delold % delete old events
 		                case 'yes'
@@ -337,16 +387,18 @@ for curfield = tmpfields'
                               EEG = eeg_checkset(EEG, 'makeur');
 		                 case 'no' % match existing fields
 		                           % ---------------------
-		                      tmparray = load_file_or_array( getfield(g, curfield{1}), g.skipline, g.delim );
-		                      if isempty(g.indices) g.indices = [1:size(tmparray(:),1)] + length(EEG.event); end
-		                      
+                              tmparray = load_file_or_array(getfield(g, curfield{1}), g.skipline, g.delim);
+                              if isempty(g.indices)
+                                  g.indices = 1:size(tmparray(:), 1) + length(EEG.event);
+                              end
+
 		                      indexmatch = strmatch(curfield{1}, allfields);
 		                      if isempty(indexmatch) % no match
 		                          disp(['pop_editeventfield(): creating new field ''' curfield{1} '''' ]);
 		                      end
                               try
                                   EEG.event = setstruct(EEG.event, curfield{1}, g.indices, tmparray);
-                              catch,
+                              catch
                                   error('Wrong size for input array');
                               end
   							  if strcmp(curfield{1}, 'latency')
@@ -368,17 +420,17 @@ for curfield = tmpfields'
                                                                                    curfield{1}, tmpval);
                                           end
                                       end
-                                  catch,
+                                  catch
                                       disp('pop_editeventfield(): problem while updating urevent structure');
                                   end
                               end
 		             end
 	            end
-	        end;    
+            end
       end
 end
 
-if isempty(EEG.event) % usefull 0xNB empty structure
+if isempty(EEG.event) % useful 0xNB empty structure
     EEG.event = [];
 end
 EEG = eeg_checkset(EEG, 'eventconsistency');

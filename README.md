@@ -1,4 +1,5 @@
-
+[![GitHub issues](https://img.shields.io/github/issues/sccn/eeglab?color=%23fa251e&logo=GitHub)](https://github.com/sccn/eeglab/issues)
+![Twitter Follow](https://img.shields.io/twitter/follow/eeglab2?style=social)
 
 # What is EEGLAB?
 EEGLAB is an open source signal processing environment for electrophysiological signals running on Matlab and Octave (command line only for Octave). This folder contains original Matlab functions from the EEGLAB (formerly ICA/EEG) Matlab toolbox, all released under the Gnu public license (see eeglablicence.txt). See the EEGLAB tutorial and reference paper (URLs given below) for more information.
@@ -42,6 +43,10 @@ git pull --recurse-submodules
 
 Delorme, A., & Makeig, S. (2004). EEGLAB: an open source toolbox for analysis of single-trial EEG dynamics including independent component analysis. Journal of neuroscience methods, 134(1), 9-21. (See article [here](http://sccn.ucsd.edu/eeglab/download/eeglab_jnm03.pdf))
  
+# Compiled version of EEGLAB
+
+If you experience problems, try running EEGLAB as administrator.
+
 # Documentation:
 
 EEGLAB documentation is available on the EEGLAB wiki (see http://sccn.ucsd.edu/wiki/EEGLAB_Wiki for more details).

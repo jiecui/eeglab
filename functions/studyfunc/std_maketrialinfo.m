@@ -1,8 +1,9 @@
-% std_maketrialinfo() - create trial information structure using the 
+% STD_MAKETRIALINFO - create trial information structure using the 
 %                       .epoch structure of EEGLAB datasets
 %
 % Usage: 
-%   >> STUDY = std_maketrialinfo(STUDY, ALLEEG);  
+%   >> [STUDY,trialinfo] = std_maketrialinfo(STUDY, ALLEEG);  
+%   >> [~,trialinfo]     = std_maketrialinfo([], EEG);  
 %
 % Inputs:
 %   STUDY      - EEGLAB STUDY set
@@ -11,6 +12,7 @@
 % Inputs:
 %   STUDY      - EEGLAB STUDY set updated. The fields which is created or
 %                updated is STUDY.datasetinfo.trialinfo
+%   trialinfo  - Trial information structure (cell array)
 %
 % Authors: Arnaud Delorme, SCCN/INC/UCSD, April 2010
 
@@ -41,12 +43,16 @@
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 % THE POSSIBILITY OF SUCH DAMAGE.
 
-function STUDY = std_maketrialinfo(STUDY, ALLEEG)
+function [STUDY,alltrialinfo] = std_maketrialinfo(STUDY, ALLEEG)
 
 %% test if .epoch field exist in ALLEEG structure
-epochfield = cellfun(@isempty, { ALLEEG.epoch });
-if any(epochfield)
-    fprintf('Warning: some datasets are continuous and trial information cannot be created\n');
+noepochfield = cellfun(@isempty, { ALLEEG.epoch });
+if any(noepochfield)
+    if all(noepochfield)
+        fprintf('Datasets are all continuous, so trial information is skipped.\n');
+    else
+        fprintf(2, 'Warning: inconsistent datasets (some are continuous and some are not). Please use [ALLEEG.trials] to see which ones and fix the problem.\n');
+    end
     return;
 end
 
@@ -65,8 +71,9 @@ for iField = 1:length(ff)
     for index = 1:length(ALLEEG)
         if isfield(ALLEEG(index).event, ff{iField}) 
             if ischar(ALLEEG(index).event(1).(ff{iField}))
-                 fieldChar(index) = 1;
-            else fieldChar(index) = 0;
+                fieldChar(index) = 1;
+            else 
+                fieldChar(index) = 0;
             end
         end
     end
@@ -129,11 +136,16 @@ for index = 1:length(ALLEEG)
                 %eventvals = cellfun(@num2str, eventvals, 'uniformoutput', false);
             %    eventvals = [ eventvals{:} ];
             %end
-            commands = { commands{:} ff{f} eventvals };
+            if isstruct(eventvals{1})
+                fprintf('Warning: Structure detected in event field - skipping\n')
+            else
+                commands = { commands{:} ff{f} eventvals };
+            end
         end
         trialinfo = struct(commands{:});
         STUDY.datasetinfo(index).trialinfo = trialinfo;
     end
+    alltrialinfo{index} = trialinfo;
     
 %    % same as above but 10 times slower
 %     for e = 1:length(ALLEEG(index).event)
@@ -151,10 +163,15 @@ end
 % ---------------------------------------
 if isfield(STUDY.datasetinfo, 'trialinfo')
     if isfield(STUDY.datasetinfo(1).trialinfo(1), 'HED')
+        changeUnicode = false;
         for iDat = 1:length(STUDY.datasetinfo)
             for iTrial = 1:length(STUDY.datasetinfo(iDat).trialinfo)
                 STUDY.datasetinfo(iDat).trialinfo(iTrial).HED(STUDY.datasetinfo(iDat).trialinfo(iTrial).HED > 255) = 32;
+                changeUnicode = true;
             end
+        end
+        if changeUnicode
+            disp('Unicode character detected in HED event field, removing them to improve stability');
         end
     end
 end
